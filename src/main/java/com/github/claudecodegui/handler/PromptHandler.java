@@ -2,6 +2,7 @@ package com.github.claudecodegui.handler;
 
 import com.github.claudecodegui.CodemossSettingsService;
 import com.github.claudecodegui.model.ConflictStrategy;
+import com.github.claudecodegui.model.PromptScope;
 import com.github.claudecodegui.settings.AbstractPromptManager;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
@@ -61,7 +62,7 @@ public class PromptHandler extends BaseMessageHandler {
     public boolean handle(String type, String content) {
         switch (type) {
             case "get_prompts":
-                handleGetPrompts();
+                handleGetPrompts(content);
                 return true;
             case "add_prompt":
                 handleAddPrompt(content);
@@ -76,7 +77,7 @@ public class PromptHandler extends BaseMessageHandler {
                 handleExportPrompts(content);
                 return true;
             case "import_prompts_file":
-                handleImportPromptsFile();
+                handleImportPromptsFile(content);
                 return true;
             case "save_imported_prompts":
                 handleSaveImportedPrompts(content);
@@ -87,11 +88,41 @@ public class PromptHandler extends BaseMessageHandler {
     }
 
     /**
-     * Get all prompts.
+     * Parse scope from message data.
+     * Defaults to GLOBAL scope if parsing fails or scope is not specified.
+     *
+     * @param data The message data (can be null or empty)
+     * @return The parsed PromptScope, or GLOBAL if parsing fails
      */
-    private void handleGetPrompts() {
+    private PromptScope parseScopeFromData(String data) {
+        if (data == null || data.trim().isEmpty()) {
+            return PromptScope.GLOBAL;
+        }
+
         try {
-            List<JsonObject> prompts = settingsService.getPrompts();
+            JsonObject json = gson.fromJson(data, JsonObject.class);
+            if (json == null || !json.has("scope")) {
+                return PromptScope.GLOBAL;
+            }
+
+            String scopeStr = json.get("scope").getAsString();
+            return PromptScope.fromString(scopeStr);
+        } catch (Exception e) {
+            LOG.warn("[PromptHandler] Failed to parse scope, defaulting to GLOBAL: " + e.getMessage());
+            return PromptScope.GLOBAL;
+        }
+    }
+
+    /**
+     * Get all prompts.
+     * Supports scope parameter for filtering by GLOBAL or PROJECT scope.
+     *
+     * @param content Message content containing optional scope parameter
+     */
+    private void handleGetPrompts(String content) {
+        try {
+            PromptScope scope = parseScopeFromData(content);
+            List<JsonObject> prompts = settingsService.getPrompts(scope, context.getProject());
             String promptsJson = gson.toJson(prompts);
 
             ApplicationManager.getApplication().invokeLater(() -> {
@@ -107,15 +138,38 @@ public class PromptHandler extends BaseMessageHandler {
 
     /**
      * Add a prompt.
+     * Supports scope parameter to specify GLOBAL or PROJECT scope.
+     * Format: {"scope":"global|project","prompt":{...}} or legacy format {...}
+     *
+     * @param content Message content containing prompt data and optional scope
      */
     private void handleAddPrompt(String content) {
         try {
-            JsonObject prompt = gson.fromJson(content, JsonObject.class);
-            settingsService.addPrompt(prompt);
+            JsonObject data = gson.fromJson(content, JsonObject.class);
+
+            // Parse scope (default to GLOBAL)
+            PromptScope scope = PromptScope.GLOBAL;
+            if (data.has("scope")) {
+                scope = PromptScope.fromString(data.get("scope").getAsString());
+            }
+
+            // Extract prompt object (support both new and legacy formats)
+            JsonObject prompt;
+            if (data.has("prompt")) {
+                prompt = data.getAsJsonObject("prompt");
+            } else {
+                // Legacy format: entire data object is the prompt
+                prompt = data;
+            }
+
+            settingsService.addPrompt(prompt, scope, context.getProject());
 
             // Refresh the list
+            final PromptScope finalScope = scope;
             ApplicationManager.getApplication().invokeLater(() -> {
-                handleGetPrompts();
+                // Refresh with the same scope
+                String scopeJson = "{\"scope\":\"" + finalScope.getValue() + "\"}";
+                handleGetPrompts(scopeJson);
                 callJavaScript("window.promptOperationResult", escapeJs("{\"success\":true,\"operation\":\"add\"}"));
             });
         } catch (Exception e) {
@@ -132,6 +186,10 @@ public class PromptHandler extends BaseMessageHandler {
 
     /**
      * Update a prompt.
+     * Supports scope parameter to specify GLOBAL or PROJECT scope.
+     * Format: {"scope":"global|project","id":"...","updates":{...}}
+     *
+     * @param content Message content containing prompt id, updates, and optional scope
      */
     private void handleUpdatePrompt(String content) {
         try {
@@ -148,14 +206,23 @@ public class PromptHandler extends BaseMessageHandler {
                 return;
             }
 
+            // Parse scope (default to GLOBAL)
+            PromptScope scope = PromptScope.GLOBAL;
+            if (data.has("scope")) {
+                scope = PromptScope.fromString(data.get("scope").getAsString());
+            }
+
             String id = data.get("id").getAsString();
             JsonObject updates = data.getAsJsonObject("updates");
 
-            settingsService.updatePrompt(id, updates);
+            settingsService.updatePrompt(id, updates, scope, context.getProject());
 
             // Refresh the list
+            final PromptScope finalScope = scope;
             ApplicationManager.getApplication().invokeLater(() -> {
-                handleGetPrompts();
+                // Refresh with the same scope
+                String scopeJson = "{\"scope\":\"" + finalScope.getValue() + "\"}";
+                handleGetPrompts(scopeJson);
                 callJavaScript("window.promptOperationResult", escapeJs("{\"success\":true,\"operation\":\"update\"}"));
             });
         } catch (Exception e) {
@@ -172,6 +239,10 @@ public class PromptHandler extends BaseMessageHandler {
 
     /**
      * Delete a prompt.
+     * Supports scope parameter to specify GLOBAL or PROJECT scope.
+     * Format: {"scope":"global|project","id":"..."}
+     *
+     * @param content Message content containing prompt id and optional scope
      */
     private void handleDeletePrompt(String content) {
         try {
@@ -183,14 +254,23 @@ public class PromptHandler extends BaseMessageHandler {
                 return;
             }
 
+            // Parse scope (default to GLOBAL)
+            PromptScope scope = PromptScope.GLOBAL;
+            if (data.has("scope")) {
+                scope = PromptScope.fromString(data.get("scope").getAsString());
+            }
+
             String id = data.get("id").getAsString();
 
-            boolean deleted = settingsService.deletePrompt(id);
+            boolean deleted = settingsService.deletePrompt(id, scope, context.getProject());
 
             if (deleted) {
                 // Refresh the list
+                final PromptScope finalScope = scope;
                 ApplicationManager.getApplication().invokeLater(() -> {
-                    handleGetPrompts();
+                    // Refresh with the same scope
+                    String scopeJson = "{\"scope\":\"" + finalScope.getValue() + "\"}";
+                    handleGetPrompts(scopeJson);
                     callJavaScript("window.promptOperationResult", escapeJs("{\"success\":true,\"operation\":\"delete\"}"));
                 });
             } else {
@@ -229,11 +309,17 @@ public class PromptHandler extends BaseMessageHandler {
 
     /**
      * Handle exporting selected prompts to a JSON file.
+     * Supports scope parameter to specify GLOBAL or PROJECT scope.
+     * Format: {"scope":"global|project","promptIds":[...]}
+     *
+     * @param content Message content containing optional scope and promptIds
      */
     private void handleExportPrompts(String content) {
         ApplicationManager.getApplication().invokeLater(() -> {
             try {
-                List<JsonObject> prompts = settingsService.getPrompts();
+                // Parse scope (default to GLOBAL)
+                PromptScope scope = parseScopeFromData(content);
+                List<JsonObject> prompts = settingsService.getPrompts(scope, context.getProject());
 
                 // Filter prompts by selected IDs if provided
                 if (content != null && !content.isEmpty()) {
@@ -337,10 +423,16 @@ public class PromptHandler extends BaseMessageHandler {
 
     /**
      * Handle importing prompts from a JSON file.
+     * Supports scope parameter to specify GLOBAL or PROJECT scope.
+     * Format: {"scope":"global|project"}
+     *
+     * @param content Message content containing optional scope
      */
-    private void handleImportPromptsFile() {
+    private void handleImportPromptsFile(String content) {
         ApplicationManager.getApplication().invokeLater(() -> {
             try {
+                // Parse scope (default to GLOBAL)
+                PromptScope scope = parseScopeFromData(content);
                 // Create file chooser descriptor for JSON files
                 FileChooserDescriptor descriptor = new FileChooserDescriptor(
                     true,  // chooseFiles
@@ -418,7 +510,7 @@ public class PromptHandler extends BaseMessageHandler {
                 }
 
                 // Validate and detect conflicts
-                AbstractPromptManager promptManager = settingsService.getPromptManager();
+                AbstractPromptManager promptManager = settingsService.getPromptManager(scope, context.getProject());
                 Set<String> conflicts = promptManager.detectConflicts(promptsToImport);
 
                 // Prepare preview data
@@ -471,6 +563,10 @@ public class PromptHandler extends BaseMessageHandler {
 
     /**
      * Handle saving imported prompts.
+     * Supports scope parameter to specify GLOBAL or PROJECT scope.
+     * Format: {"scope":"global|project","prompts":[...],"strategy":"..."}
+     *
+     * @param content Message content containing prompts, strategy, and optional scope
      */
     private void handleSaveImportedPrompts(String content) {
         try {
@@ -482,6 +578,12 @@ public class PromptHandler extends BaseMessageHandler {
                 return;
             }
 
+            // Parse scope (default to GLOBAL)
+            PromptScope scope = PromptScope.GLOBAL;
+            if (data.has("scope")) {
+                scope = PromptScope.fromString(data.get("scope").getAsString());
+            }
+
             JsonArray selectedPromptsArray = data.getAsJsonArray("prompts");
             String strategyStr = data.get("strategy").getAsString();
             ConflictStrategy strategy = ConflictStrategy.fromValue(strategyStr);
@@ -491,16 +593,18 @@ public class PromptHandler extends BaseMessageHandler {
                 promptsToImport.add(selectedPromptsArray.get(i).getAsJsonObject());
             }
 
-            AbstractPromptManager promptManager = settingsService.getPromptManager();
+            AbstractPromptManager promptManager = settingsService.getPromptManager(scope, context.getProject());
             Map<String, Object> result = promptManager.batchImportPrompts(promptsToImport, strategy);
 
             // Send result to frontend
+            final PromptScope finalScope = scope;
             ApplicationManager.getApplication().invokeLater(() -> {
                 String resultJson = gson.toJson(result);
                 callJavaScript("window.promptImportResult", escapeJs(resultJson));
 
-                // Refresh the list
-                handleGetPrompts();
+                // Refresh the list with the same scope
+                String scopeJson = "{\"scope\":\"" + finalScope.getValue() + "\"}";
+                handleGetPrompts(scopeJson);
 
                 // Show notification
                 boolean success = (boolean) result.get("success");

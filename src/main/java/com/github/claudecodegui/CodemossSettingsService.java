@@ -1,9 +1,9 @@
 package com.github.claudecodegui;
 
+import com.github.claudecodegui.model.ConflictStrategy;
 import com.github.claudecodegui.model.DeleteResult;
 import com.github.claudecodegui.model.PromptScope;
 import com.github.claudecodegui.settings.*;
-import com.github.claudecodegui.settings.AbstractPromptManager.ConflictStrategy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
