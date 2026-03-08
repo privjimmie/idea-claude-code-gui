@@ -80,7 +80,7 @@ public class SettingsHandler extends BaseMessageHandler {
         "record_input_history",
         "delete_input_history_item",
         "clear_input_history",
-        // 提示音配置
+        // Sound notification configuration
         "get_sound_notification_config",
         "set_sound_notification_enabled",
         "set_sound_only_when_unfocused",
@@ -218,7 +218,7 @@ public class SettingsHandler extends BaseMessageHandler {
             case "clear_input_history":
                 handleClearInputHistory();
                 return true;
-            // 提示音配置
+            // Sound notification configuration
             case "get_sound_notification_config":
                 handleGetSoundNotificationConfig();
                 return true;
@@ -1665,10 +1665,10 @@ public class SettingsHandler extends BaseMessageHandler {
         return lines.length > 0 ? lines[lines.length - 1] : "{}";
     }
 
-    // ==================== 提示音配置管理 ====================
+    // ==================== Sound Notification Configuration ====================
 
     /**
-     * 获取提示音配置
+     * Gets sound notification configuration.
      */
     private void handleGetSoundNotificationConfig() {
         try {

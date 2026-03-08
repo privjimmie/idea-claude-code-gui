@@ -322,7 +322,7 @@ const SettingsView = ({
     }
   });
 
-  // 提示音配置
+  // Sound notification configuration
   const [soundNotificationEnabled, setSoundNotificationEnabled] = useState<boolean>(false);
   const [soundOnlyWhenUnfocused, setSoundOnlyWhenUnfocused] = useState<boolean>(false);
   const [selectedSound, setSelectedSound] = useState<string>('default');

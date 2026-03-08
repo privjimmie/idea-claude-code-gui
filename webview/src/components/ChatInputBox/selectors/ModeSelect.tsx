@@ -20,7 +20,7 @@ export const ModeSelect = ({ value, onChange, provider }: ModeSelectProps) => {
 
   const modeOptions = useMemo(() => {
     if (provider === 'codex') {
-      // Codex 支持 default/acceptEdits/bypassPermissions，计划模式暂不开放
+      // Codex supports default/acceptEdits/bypassPermissions; plan mode is not exposed yet.
       return AVAILABLE_MODES.filter((mode) => mode.id !== 'plan');
     }
     return AVAILABLE_MODES;

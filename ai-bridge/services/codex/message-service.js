@@ -57,8 +57,8 @@ const CODEX_CLI_ENV_BLOCKLIST = new Set([
 ]);
 
 /**
- * 从环境变量读取沙箱模式覆盖值。
- * 返回空字符串表示不覆盖。
+ * Reads sandbox mode override from environment variables.
+ * Returns an empty string when no override should be applied.
  */
 function resolveSandboxModeOverride() {
   const value = (process.env.CODEX_SANDBOX_MODE || '').trim();
@@ -73,8 +73,8 @@ function resolveSandboxModeOverride() {
 }
 
 /**
- * 从环境变量读取审批策略覆盖值。
- * 返回空字符串表示不覆盖。
+ * Reads approval policy override from environment variables.
+ * Returns an empty string when no override should be applied.
  */
 function resolveApprovalPolicyOverride() {
   const value = (process.env.CODEX_APPROVAL_POLICY || '').trim();
@@ -89,7 +89,8 @@ function resolveApprovalPolicyOverride() {
 }
 
 /**
- * 构建传给 Codex CLI 的受控环境变量，避免继承污染变量导致审批策略失效。
+ * Builds a sanitized environment map for Codex CLI to avoid inherited
+ * polluted variables that can break approval policy behavior.
  */
 function buildCodexCliEnvironment(baseEnv) {
   const cliEnv = {};
@@ -157,7 +158,7 @@ const SESSION_PATCH_SCAN_MAX_FILES = 5000;
 const SESSION_CONTEXT_SCAN_MAX_LINES = 1200;
 
 /**
- * 从 exec_command 参数里提取 apply_patch 文本。
+ * Extracts apply_patch text from exec_command arguments.
  */
 function extractPatchFromExecCommand(cmd) {
   if (typeof cmd !== 'string' || !cmd) {
@@ -172,8 +173,8 @@ function extractPatchFromExecCommand(cmd) {
 }
 
 /**
- * 从 response_item payload 里提取 patch 文本。
- * 支持 function_call(exec_command/apply_patch) 与 custom_tool_call(apply_patch)。
+ * Extracts patch text from a response_item payload.
+ * Supports function_call(exec_command/apply_patch) and custom_tool_call(apply_patch).
  */
 function extractPatchFromResponseItemPayload(payload) {
   if (!payload || typeof payload !== 'object') {
@@ -224,7 +225,7 @@ function extractPatchFromResponseItemPayload(payload) {
 }
 
 /**
- * 解析 apply_patch 文本为可复用的编辑操作。
+ * Parses apply_patch text into reusable edit operations.
  */
 function parseApplyPatchToOperations(patchText) {
   if (typeof patchText !== 'string' || !patchText.trim()) {
@@ -365,7 +366,7 @@ function parseApplyPatchToOperations(patchText) {
 }
 
 /**
- * 在 ~/.codex/sessions 中查找包含 threadId 的会话文件。
+ * Finds a session file containing the threadId under ~/.codex/sessions.
  */
 function findSessionFileByThreadId(threadId) {
   if (!threadId || typeof threadId !== 'string') {
@@ -611,7 +612,8 @@ export async function sendMessage(
       codexOptions.apiKey = apiKey;
     }
 
-    // 给 SDK 显式传入受控 env，避免 CLI 继承上层 CODEX_* 污染变量（例如 CODEX_CI=1）。
+    // Pass a sanitized env to the SDK to avoid inherited CODEX_* pollution
+    // (for example CODEX_CI=1) affecting CLI behavior.
     const { cliEnv, removedKeys } = buildCodexCliEnvironment(process.env);
     codexOptions.env = cliEnv;
     console.log('[PERM_DEBUG] Codex CLI env isolation:', {
@@ -635,7 +637,8 @@ export async function sendMessage(
       CODEX_APPROVAL_POLICY: process.env.CODEX_APPROVAL_POLICY || ''
     });
 
-    // 允许 Java 侧通过环境变量强制覆盖 Node 层的沙箱映射，避免二次映射回 workspace-write。
+    // Allow Java side to force sandbox mapping override via env vars so Node
+    // side mapping does not fall back to workspace-write again.
     const sandboxOverride = resolveSandboxModeOverride();
     if (sandboxOverride) {
       permissionConfig.sandbox = sandboxOverride;
@@ -1688,7 +1691,7 @@ export async function sendMessage(
             const status = event.item.status || 'completed';
             const isError = status !== 'completed';
 
-            // 打印完整结构，便于后续定位字段差异
+            // Print the full structure to help diagnose field differences later.
             try {
               console.log('[DEBUG] file_change raw item:', JSON.stringify(event.item));
             } catch (error) {
@@ -1699,8 +1702,9 @@ export async function sendMessage(
             let deniedCallIds = new Set();
             let rollbackByCallId = new Map();
 
-            // Codex SDK 的 exec 模式在部分宿主环境会强制 approval_policy=never。
-            // 这里兜底接入插件权限弹窗，至少保障用户能看到审批流程并可拒绝写入结果。
+            // Codex SDK exec mode may force approval_policy=never in some host environments.
+            // As a fallback, bridge to the plugin-side approval dialog so users can still
+            // see approval flow and reject write results.
             const shouldBridgeApproval = !isError &&
               (threadOptions.approvalPolicy && threadOptions.approvalPolicy !== 'never');
             if (shouldBridgeApproval && patchBatches.length > 0) {
@@ -1940,8 +1944,8 @@ export async function sendMessage(
 }
 
 /**
- * 获取 Codex MCP 服务器工具列表。
- * 复用 mcp-status-service 的探测逻辑，避免重复实现协议握手。
+ * Gets the tools list for a Codex MCP server.
+ * Reuses mcp-status-service probing logic to avoid duplicate handshake implementation.
  *
  * @param {string} serverId
  * @param {Object} rawServerConfig
@@ -2002,7 +2006,7 @@ export async function getMcpServerTools(serverId, rawServerConfig) {
 }
 
 /**
- * 将 Codex 配置字段名转换为 mcp-status-service 可识别的格式。
+ * Converts Codex config field names to a format recognized by mcp-status-service.
  *
  * @param {Object} raw
  * @returns {Object}
@@ -2017,7 +2021,7 @@ function normalizeCodexMcpConfig(raw) {
     normalized.headers = { ...normalized.http_headers };
   }
 
-  // Codex: env_http_headers（值是环境变量名）-> headers（解析后的值）
+  // Codex: env_http_headers (values are env var names) -> headers (resolved values)
   if (normalized.env_http_headers && typeof normalized.env_http_headers === 'object') {
     const fromEnv = {};
     for (const [headerName, envName] of Object.entries(normalized.env_http_headers)) {

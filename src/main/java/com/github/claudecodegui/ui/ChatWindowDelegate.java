@@ -213,7 +213,8 @@ public class ChatWindowDelegate {
             sessionId = java.util.UUID.randomUUID().toString();
         }
 
-        // 关键：对齐 Claude/Codex 子进程的 CLAUDE_SESSION_ID，确保 PermissionService 能命中同一批请求文件。
+        // Critical: align CLAUDE_SESSION_ID across Claude/Codex subprocesses so
+        // PermissionService can hit the same batch of request files.
         claudeSDKBridge.setSessionId(sessionId);
         if (codexSDKBridge != null) {
             codexSDKBridge.setSessionId(sessionId);

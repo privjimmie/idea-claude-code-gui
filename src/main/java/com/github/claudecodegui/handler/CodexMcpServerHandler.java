@@ -141,7 +141,7 @@ public class CodexMcpServerHandler extends BaseMessageHandler {
     }
 
     /**
-     * 获取指定 Codex MCP 服务器的工具列表
+     * Gets the tool list for the specified Codex MCP server.
      */
     private void handleGetMcpServerTools(String content) {
         try {

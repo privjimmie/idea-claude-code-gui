@@ -116,7 +116,7 @@ public abstract class BaseSDKBridge {
     }
 
     /**
-     * 设置当前 Bridge 的会话 ID（用于权限服务路由对齐）。
+     * Sets the current bridge session ID for permission service routing alignment.
      */
     public void setSessionId(String sessionId) {
         envConfigurator.setSessionId(sessionId);

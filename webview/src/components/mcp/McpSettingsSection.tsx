@@ -162,7 +162,7 @@ export function McpSettingsSection({ currentProvider = 'claude' }: McpSettingsSe
         // ignore
       }
 
-      // 展开时自动加载工具列表
+      // Automatically load tool list when expanded.
       if (server && !serverTools[serverId]) {
         loadServerTools(server, false);
       }

@@ -357,7 +357,7 @@ public class ClaudeSession {
     /**
      * Send a message with attachments, agent prompt, file tags, and a requested permission mode.
      * The effective mode is resolved with priority:
-     * 优先级：requestedPermissionMode > sessionMode > default。
+     * Priority: requestedPermissionMode > sessionMode > default.
      */
     public CompletableFuture<Void> send(
             String input,
@@ -1024,7 +1024,7 @@ public class ClaudeSession {
             resolvedMode = "default";
         }
 
-        // Codex 暂不支持计划模式执行，统一回退到建议模式。
+        // Codex does not support plan execution yet; always fall back to default mode.
         if ("codex".equals(provider) && "plan".equals(resolvedMode)) {
             return "default";
         }

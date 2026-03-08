@@ -173,7 +173,8 @@ public class EnvironmentConfigurator {
     }
 
     /**
-     * 显式设置会话 ID，用于在多 Bridge 场景下对齐权限请求路由。
+     * Explicitly sets the session ID to align permission request routing
+     * across multiple bridge instances.
      */
     public void setSessionId(String sessionId) {
         if (sessionId == null) {

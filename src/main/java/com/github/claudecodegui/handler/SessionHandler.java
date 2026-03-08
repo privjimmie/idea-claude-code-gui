@@ -381,7 +381,8 @@ public class SessionHandler extends BaseMessageHandler {
     private String determineWorkingDirectory() {
         String projectPath = context.getProject().getBasePath();
 
-        // 优先使用用户配置的工作目录（仅在 projectPath 有效时可解析相对路径）。
+        // Prefer the user-configured working directory first
+        // (relative paths are resolved only when projectPath is valid).
         if (projectPath != null && new File(projectPath).exists()) {
             try {
                 com.github.claudecodegui.CodemossSettingsService settingsService =
@@ -389,13 +390,13 @@ public class SessionHandler extends BaseMessageHandler {
                 String customWorkingDir = settingsService.getCustomWorkingDirectory(projectPath);
 
                 if (customWorkingDir != null && !customWorkingDir.isEmpty()) {
-                    // 如果是相对路径，则相对于项目根解析。
+                    // Resolve relative paths against the project root.
                     File workingDirFile = new File(customWorkingDir);
                     if (!workingDirFile.isAbsolute()) {
                         workingDirFile = new File(projectPath, customWorkingDir);
                     }
 
-                    // 校验目录存在性。
+                    // Validate that the directory exists.
                     if (workingDirFile.exists() && workingDirFile.isDirectory()) {
                         String resolvedPath = workingDirFile.getAbsolutePath();
                         LOG.info("[SessionHandler] Using custom working directory: " + resolvedPath);
@@ -409,27 +410,29 @@ public class SessionHandler extends BaseMessageHandler {
             }
         }
 
-        // 当当前激活文件不在 projectPath 下时，优先切到该文件父目录。
-        // 典型场景：单文件临时工程（projectPath 在 /tmp），真实文件位于用户目录。
+        // When the active file is outside projectPath, prefer its parent directory.
+        // Typical case: single-file temporary project (projectPath in /tmp)
+        // while the actual file is under the user's home path.
         String activeFileDir = resolveWorkingDirectoryFromActiveFile(projectPath);
         if (activeFileDir != null && !activeFileDir.isEmpty()) {
             return activeFileDir;
         }
 
-        // projectPath 无效时，回退到用户家目录。
+        // Fall back to the user's home directory when projectPath is invalid.
         if (projectPath == null || !new File(projectPath).exists()) {
             String userHome = PlatformUtils.getHomeDirectory();
             LOG.warn("[SessionHandler] Using user home directory as fallback: " + userHome);
             return userHome;
         }
 
-        // 默认使用项目根目录。
+        // Use project root as the default working directory.
         return projectPath;
     }
 
     /**
-     * 尝试从当前激活文件推断工作目录。
-     * 仅当文件不在项目根目录内时返回其父目录；否则返回 null。
+     * Tries to infer a working directory from the currently active file.
+     * Returns the parent directory only when the file is outside project root;
+     * otherwise returns null.
      */
     private String resolveWorkingDirectoryFromActiveFile(String projectPath) {
         try {
@@ -479,7 +482,7 @@ public class SessionHandler extends BaseMessageHandler {
     }
 
     /**
-     * 判断 childPath 是否位于 basePath 目录内（含等于）。
+     * Checks whether childPath is inside basePath (including equality).
      */
     private boolean isPathWithin(String childPath, String basePath) {
         if (childPath == null || basePath == null) {
