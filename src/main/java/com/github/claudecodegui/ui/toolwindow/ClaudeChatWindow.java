@@ -1,9 +1,9 @@
 package com.github.claudecodegui.ui.toolwindow;
 
 import com.github.claudecodegui.action.SendShortcutSync;
-import com.github.claudecodegui.handler.HandlerContext;
-import com.github.claudecodegui.handler.HistoryHandler;
-import com.github.claudecodegui.handler.MessageDispatcher;
+import com.github.claudecodegui.handler.core.HandlerContext;
+import com.github.claudecodegui.handler.history.HistoryHandler;
+import com.github.claudecodegui.handler.core.MessageDispatcher;
 import com.github.claudecodegui.handler.PermissionHandler;
 import com.github.claudecodegui.permission.PermissionService;
 import com.github.claudecodegui.provider.claude.ClaudeSDKBridge;

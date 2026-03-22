@@ -1,5 +1,8 @@
 package com.github.claudecodegui.handler;
 
+import com.github.claudecodegui.handler.core.BaseMessageHandler;
+import com.github.claudecodegui.handler.core.HandlerContext;
+
 import com.github.claudecodegui.settings.CodemossSettingsService;
 import com.github.claudecodegui.model.ConflictStrategy;
 import com.google.gson.Gson;

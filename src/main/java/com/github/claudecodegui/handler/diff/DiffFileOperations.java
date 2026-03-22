@@ -1,6 +1,6 @@
 package com.github.claudecodegui.handler.diff;
 
-import com.github.claudecodegui.handler.HandlerContext;
+import com.github.claudecodegui.handler.core.HandlerContext;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.vfs.LocalFileSystem;

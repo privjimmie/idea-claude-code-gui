@@ -1,5 +1,7 @@
 package com.github.claudecodegui.handler;
 
+import com.github.claudecodegui.handler.core.HandlerContext;
+
 import com.github.claudecodegui.settings.CodemossSettingsService;
 import com.github.claudecodegui.action.SendShortcutSync;
 import com.github.claudecodegui.provider.claude.ClaudeHistoryReader;

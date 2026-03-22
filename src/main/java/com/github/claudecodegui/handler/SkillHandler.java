@@ -1,5 +1,8 @@
 package com.github.claudecodegui.handler;
 
+import com.github.claudecodegui.handler.core.BaseMessageHandler;
+import com.github.claudecodegui.handler.core.HandlerContext;
+
 import com.github.claudecodegui.skill.CodexSkillService;
 import com.github.claudecodegui.skill.SkillService;
 import com.google.gson.Gson;

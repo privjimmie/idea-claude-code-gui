@@ -1,7 +1,7 @@
 package com.github.claudecodegui.handler.diff;
 
 import com.github.claudecodegui.i18n.ClaudeCodeGuiBundle;
-import com.github.claudecodegui.handler.HandlerContext;
+import com.github.claudecodegui.handler.core.HandlerContext;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.intellij.openapi.application.ApplicationManager;

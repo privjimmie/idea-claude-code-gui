@@ -1,5 +1,8 @@
 package com.github.claudecodegui.handler;
 
+import com.github.claudecodegui.handler.core.BaseMessageHandler;
+import com.github.claudecodegui.handler.core.HandlerContext;
+
 import com.github.claudecodegui.handler.diff.DiffBrowserBridge;
 import com.github.claudecodegui.handler.diff.DiffFileOperations;
 import com.github.claudecodegui.handler.diff.DiffRequestDispatcher;

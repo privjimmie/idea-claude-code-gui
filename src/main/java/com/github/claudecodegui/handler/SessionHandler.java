@@ -1,5 +1,8 @@
 package com.github.claudecodegui.handler;
 
+import com.github.claudecodegui.handler.core.BaseMessageHandler;
+import com.github.claudecodegui.handler.core.HandlerContext;
+
 import com.github.claudecodegui.session.ClaudeSession;
 import com.github.claudecodegui.bridge.NodeDetector;
 import com.github.claudecodegui.model.NodeDetectionResult;
