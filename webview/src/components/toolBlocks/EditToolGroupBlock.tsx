@@ -4,6 +4,7 @@ import type { ToolInput, ToolResultBlock } from '../../types';
 import { openFile, showDiff, refreshFile } from '../../utils/bridge';
 import { getFileIcon } from '../../utils/fileIcons';
 import { resolveToolTarget } from '../../utils/toolPresentation';
+import { normalizeToolInput } from '../../utils/toolInputNormalization';
 
 interface EditItem {
   filePath: string;
@@ -86,7 +87,8 @@ function computeDiffStats(oldString: string, newString: string): { additions: nu
  * Parse item to EditItem
  */
 function parseEditItem(item: { name?: string; input?: ToolInput; result?: ToolResultBlock | null }): EditItem | null {
-  const { input, result } = item;
+  const result = item.result;
+  const input = item.input ? normalizeToolInput(item.name, item.input) : item.input;
   if (!input) return null;
 
   const target = resolveToolTarget({

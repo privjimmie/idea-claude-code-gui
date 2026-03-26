@@ -2,10 +2,11 @@ import { useMemo } from 'react';
 import type { ClaudeMessage, ClaudeContentBlock, ToolResultBlock } from '../types';
 import type { FileChangeSummary, EditOperation, FileChangeStatus } from '../types/fileChanges';
 import { getFileName } from '../utils/helpers';
-import { FILE_MODIFY_TOOL_NAMES, isToolName } from '../utils/toolConstants';
+import { FILE_MODIFY_TOOL_NAMES, isToolName, normalizeToolName } from '../utils/toolConstants';
+import { normalizeToolInput } from '../utils/toolInputNormalization';
 
 /** Write tool names that indicate a new file */
-const WRITE_TOOL_NAMES = new Set(['write', 'create_file']);
+const WRITE_TOOL_NAMES = new Set(['write', 'write_file', 'create_file']);
 
 /**
  * Maximum lines to use LCS algorithm.
@@ -170,7 +171,7 @@ function determineFileStatus(operations: EditOperation[]): FileChangeStatus {
 
   const firstOp = operations[0];
   // Write/create_file tools indicate a new file
-  if (WRITE_TOOL_NAMES.has(firstOp.toolName.toLowerCase())) {
+  if (WRITE_TOOL_NAMES.has(normalizeToolName(firstOp.toolName))) {
     return 'A';
   }
   // If first operation has empty oldString, it's likely a new file
@@ -220,12 +221,13 @@ export function useFileChanges({
       blocks.forEach((block) => {
         if (block.type !== 'tool_use') return;
 
-        const toolName = block.name?.toLowerCase() ?? '';
+        const toolName = normalizeToolName(block.name ?? '');
 
         // Check if this is a file modification tool
         if (!isToolName(toolName, FILE_MODIFY_TOOL_NAMES)) return;
 
-        const input = block.input as Record<string, unknown> | undefined;
+        const rawInput = block.input as Record<string, unknown> | undefined;
+        const input = rawInput ? normalizeToolInput(block.name, rawInput) as Record<string, unknown> : undefined;
         if (!input) return;
 
         const filePath = extractFilePath(input);

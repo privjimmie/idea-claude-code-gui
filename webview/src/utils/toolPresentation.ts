@@ -1,6 +1,8 @@
 import type { ToolInput } from '../types';
 import { getFileName, truncate } from './helpers';
 import { extractFilePathFromCommand, isCommandToolName, unwrapShellCommand } from './toolCommandPath';
+import { normalizeToolInput } from './toolInputNormalization';
+import { normalizeToolName } from './toolConstants';
 
 const SPECIAL_FILES = new Set([
   'makefile', 'dockerfile', 'jenkinsfile', 'vagrantfile',
@@ -98,20 +100,21 @@ export interface ToolTargetInfo {
 }
 
 export const resolveToolTarget = (input: ToolInput, name?: string): ToolTargetInfo | undefined => {
+  const normalizedInput = normalizeToolInput(name, input) ?? input;
   const workdir = typeof input.workdir === 'string' ? input.workdir : undefined;
   const standardPath =
-    (typeof input.file_path === 'string' ? input.file_path : undefined) ??
-    (typeof input.path === 'string' ? input.path : undefined) ??
-    (typeof input.target_file === 'string' ? input.target_file : undefined) ??
-    (typeof input.notebook_path === 'string' ? input.notebook_path : undefined);
+    (typeof normalizedInput.file_path === 'string' ? normalizedInput.file_path : undefined) ??
+    (typeof normalizedInput.path === 'string' ? normalizedInput.path : undefined) ??
+    (typeof normalizedInput.target_file === 'string' ? normalizedInput.target_file : undefined) ??
+    (typeof normalizedInput.notebook_path === 'string' ? normalizedInput.notebook_path : undefined);
 
-  const lowerName = (name ?? '').toLowerCase();
+  const lowerName = normalizeToolName(name ?? '');
 
   // Handle apply_patch tool - extract file path from patch content
   if (lowerName === 'apply_patch') {
-    const patchContent = (typeof input.input === 'string' ? input.input : undefined) ??
-      (typeof input.patch === 'string' ? input.patch : undefined) ??
-      (typeof input.content === 'string' ? input.content : undefined);
+    const patchContent = (typeof normalizedInput.input === 'string' ? normalizedInput.input : undefined) ??
+      (typeof normalizedInput.patch === 'string' ? normalizedInput.patch : undefined) ??
+      (typeof normalizedInput.content === 'string' ? normalizedInput.content : undefined);
 
     if (patchContent) {
       const paths = extractPathsFromPatch(patchContent);
@@ -145,8 +148,8 @@ export const resolveToolTarget = (input: ToolInput, name?: string): ToolTargetIn
     isCommandToolName(lowerName);
 
   // Codex uses 'cmd', others use 'command'
-  const commandStr = (typeof input.command === 'string' ? input.command : undefined) ??
-    (typeof input.cmd === 'string' ? input.cmd : undefined);
+  const commandStr = (typeof normalizedInput.command === 'string' ? normalizedInput.command : undefined) ??
+    (typeof normalizedInput.cmd === 'string' ? normalizedInput.cmd : undefined);
 
   const rawPath = standardPath ??
     ((isCommandTool && commandStr)
