@@ -38,7 +38,7 @@ java {
 
     // Use Java Toolchain for consistent JDK across all tasks
     toolchain {
-        languageVersion = JavaLanguageVersion.of(17)
+        languageVersion = JavaLanguageVersion.of(21)
     }
 }
 
@@ -58,7 +58,7 @@ if (localJavaHome) {
             // Skip runIde task to use JBR for JCEF support
             if (it.name != 'runIde') {
                 javaLauncher = javaToolchains.launcherFor {
-                    languageVersion = JavaLanguageVersion.of(17)
+                    languageVersion = JavaLanguageVersion.of(21)
                 }
             }
         }

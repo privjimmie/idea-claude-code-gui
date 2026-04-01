@@ -1,3 +1,44 @@
+# Fork by Jimmie
+
+This is a personal fork built from source for security and trust reasons. Below are two ways to install it in JetBrains Rider.
+
+## How to install
+
+### Alt 1: Use prebuilt binary
+
+1. Grab the zip from [`build/distributions/idea-claude-code-gui-0.3.2.zip`](build/distributions/idea-claude-code-gui-0.3.2.zip)
+2. Open **Rider** > **Settings** > **Plugins**
+3. Click the **gear icon** > **Install Plugin from Disk...**
+4. Select the zip
+5. Restart Rider
+
+### Alt 2: Build from source
+
+#### Prerequisites
+- **Node.js** (v18+)
+- **JDK 21** (e.g. [Eclipse Temurin](https://adoptium.net/) — `winget install EclipseAdoptium.Temurin.21.JDK`)
+
+#### Build steps
+
+1. Clone this repo and install npm dependencies:
+   ```bash
+   cd webview && npm install && cd ..
+   cd ai-bridge && npm install && cd ..
+   ```
+
+2. Set JAVA_HOME to your JDK 21 and build for Rider:
+   ```bash
+   export JAVA_HOME="/c/Program Files/Eclipse Adoptium/jdk-21.0.10.7-hotspot"
+   export PATH="$JAVA_HOME/bin:$PATH"
+   ./gradlew buildPlugin -PtargetIde=RD
+   ```
+
+3. The plugin zip will be at `build/distributions/idea-claude-code-gui-0.3.2.zip`
+
+4. Install in Rider using the same steps as Alt 1
+
+---
+
 <div align="center">
 
 # CC GUI（Claude or Codex）
