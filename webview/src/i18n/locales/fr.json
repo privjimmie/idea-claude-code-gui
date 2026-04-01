@@ -509,6 +509,13 @@
         "modelIdPlaceholder": "Model ID (required, e.g., gpt-4o)",
         "modelLabelPlaceholder": "Display name (optional)",
         "modelDescPlaceholder": "Model description (optional)",
+        "cliLoginProviderName": "Connexion Codex CLI",
+        "cliLoginProviderDescription": "Utiliser les identifiants d'abonnement ChatGPT de Codex CLI",
+        "cliLoginAuthorizeTitle": "Activer la connexion Codex CLI",
+        "cliLoginAuthorizeMessage": "Cela effacera votre config.toml et utilisera les identifiants d'abonnement ChatGPT de Codex CLI.",
+        "cliLoginAuthorizeDetail": "Assurez-vous d'etre connecte via 'codex login' dans votre terminal. Votre config.toml actuelle sera sauvegardee.",
+        "cliLoginDisableTitle": "Desactiver la connexion Codex CLI",
+        "cliLoginDisableMessage": "Cela restaurera votre config.toml precedent et basculera vers l'authentification par cle API.",
         "modelIdRequired": "Model ID is required",
         "modelIdInvalid": "Invalid model ID format (only letters, numbers, dots, hyphens, underscores, slashes and colons allowed)",
         "modelIdDuplicate": "Model ID already exists"

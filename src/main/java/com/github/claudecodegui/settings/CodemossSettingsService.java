@@ -33,6 +33,9 @@ public class CodemossSettingsService {
     private static final int CONFIG_VERSION = 2;
     private static final String CODEX_SANDBOX_MODE_WORKSPACE_WRITE = "workspace-write";
     private static final String CODEX_SANDBOX_MODE_DANGER_FULL_ACCESS = "danger-full-access";
+    public static final String CODEX_RUNTIME_ACCESS_INACTIVE = "inactive";
+    public static final String CODEX_RUNTIME_ACCESS_MANAGED = "managed";
+    public static final String CODEX_RUNTIME_ACCESS_CLI_LOGIN = "cli_login";
 
     private final Gson gson;
 
@@ -241,6 +244,12 @@ public class CodemossSettingsService {
         claude.addProperty("current", "");
         claude.add("providers", providers);
         config.add("claude", claude);
+
+        JsonObject codex = new JsonObject();
+        codex.addProperty("current", "");
+        codex.add("providers", new JsonObject());
+        codex.addProperty("localConfigAuthorized", false);
+        config.add("codex", codex);
 
         return config;
     }
@@ -1068,7 +1077,96 @@ public class CodemossSettingsService {
     }
 
     public JsonObject getCurrentCodexConfig() throws IOException {
+        if (!isCodexLocalConfigAuthorized()) {
+            return new JsonObject();
+        }
         return codexProviderManager.getCurrentCodexConfig();
+    }
+
+    public boolean isCodexCliLoginAvailable() {
+        try {
+            if (!isCodexLocalConfigAuthorized()) {
+                return false;
+            }
+            return codexSettingsManager.isCodexCliLoginAvailable();
+        } catch (IOException e) {
+            LOG.warn("[CodemossSettings] Failed to check Codex local authorization: " + e.getMessage());
+            return false;
+        }
+    }
+
+    public void applyCodexCliLoginToSettings() throws IOException {
+        codexSettingsManager.applyCodexCliLoginToSettings();
+    }
+
+    public void removeCodexCliLoginFromSettings() throws IOException {
+        codexSettingsManager.removeCodexCliLoginFromSettings();
+    }
+
+    public JsonObject readCodexCliLoginAccountInfo() {
+        try {
+            if (!isCodexLocalConfigAuthorized()) {
+                return null;
+            }
+            return codexSettingsManager.readCodexCliLoginAccountInfo();
+        } catch (IOException e) {
+            LOG.warn("[CodemossSettings] Failed to read Codex local authorization state: " + e.getMessage());
+            return null;
+        }
+    }
+
+    public boolean isCodexLocalConfigAuthorized() throws IOException {
+        JsonObject config = readConfig();
+        if (!config.has("codex") || !config.get("codex").isJsonObject()) {
+            return false;
+        }
+        JsonObject codex = config.getAsJsonObject("codex");
+        return codex.has("localConfigAuthorized")
+                && !codex.get("localConfigAuthorized").isJsonNull()
+                && codex.get("localConfigAuthorized").getAsBoolean();
+    }
+
+    public void setCodexLocalConfigAuthorized(boolean authorized) throws IOException {
+        JsonObject config = readConfig();
+        JsonObject codex;
+        if (config.has("codex") && config.get("codex").isJsonObject()) {
+            codex = config.getAsJsonObject("codex");
+        } else {
+            codex = new JsonObject();
+            codex.add("providers", new JsonObject());
+            codex.addProperty("current", "");
+            config.add("codex", codex);
+        }
+
+        codex.addProperty("localConfigAuthorized", authorized);
+        writeConfig(config);
+    }
+
+    public String getCodexRuntimeAccessMode() throws IOException {
+        JsonObject config = readConfig();
+        if (!config.has("codex") || !config.get("codex").isJsonObject()) {
+            return CODEX_RUNTIME_ACCESS_INACTIVE;
+        }
+
+        JsonObject codex = config.getAsJsonObject("codex");
+        String currentId = codex.has("current") && !codex.get("current").isJsonNull()
+                ? codex.get("current").getAsString().trim()
+                : "";
+
+        if (CodexProviderManager.CODEX_CLI_LOGIN_PROVIDER_ID.equals(currentId)) {
+            return isCodexLocalConfigAuthorized()
+                    ? CODEX_RUNTIME_ACCESS_CLI_LOGIN
+                    : CODEX_RUNTIME_ACCESS_INACTIVE;
+        }
+
+        if (!currentId.isEmpty()
+                && codex.has("providers")
+                && codex.get("providers").isJsonObject()
+                && codex.getAsJsonObject("providers").has(currentId)) {
+            return CODEX_RUNTIME_ACCESS_MANAGED;
+        }
+
+        return CODEX_RUNTIME_ACCESS_INACTIVE;
     }
 
     public int saveCodexProviders(List<JsonObject> providers) throws IOException {

@@ -521,6 +521,13 @@
         "modelIdPlaceholder": "ID модели (обязательно, например, gpt-4o)",
         "modelLabelPlaceholder": "Отображаемое имя (необязательно)",
         "modelDescPlaceholder": "Описание модели (необязательно)",
+        "cliLoginProviderName": "Вход Codex CLI",
+        "cliLoginProviderDescription": "Использовать данные подписки ChatGPT из Codex CLI",
+        "cliLoginAuthorizeTitle": "Включить вход Codex CLI",
+        "cliLoginAuthorizeMessage": "Это очистит ваш config.toml и будет использовать данные подписки ChatGPT из Codex CLI.",
+        "cliLoginAuthorizeDetail": "Убедитесь, что вы вошли через 'codex login' в терминале. Ваш текущий config.toml будет сохранен.",
+        "cliLoginDisableTitle": "Отключить вход Codex CLI",
+        "cliLoginDisableMessage": "Это восстановит ваш предыдущий config.toml и переключит на API ключ.",
         "modelIdRequired": "ID модели обязателен",
         "modelIdInvalid": "Некорректный формат ID модели (допускаются буквы, цифры, точки, дефисы, подчёркивания, слэши и двоеточия)",
         "modelIdDuplicate": "ID модели уже существует"

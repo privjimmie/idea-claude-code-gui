@@ -545,6 +545,13 @@
         "modelIdPlaceholder": "모델 ID (필수, 예: gpt-4o)",
         "modelLabelPlaceholder": "표시 이름 (선택사항)",
         "modelDescPlaceholder": "모델 설명 (선택사항)",
+        "cliLoginProviderName": "Codex CLI 로그인",
+        "cliLoginProviderDescription": "Codex CLI의 ChatGPT 구독 자격 증명 사용",
+        "cliLoginAuthorizeTitle": "Codex CLI 로그인 활성화",
+        "cliLoginAuthorizeMessage": "config.toml을 비우고 Codex CLI의 ChatGPT 구독 자격 증명을 사용합니다.",
+        "cliLoginAuthorizeDetail": "터미널에서 'codex login'으로 로그인했는지 확인하세요. 현재 config.toml은 백업됩니다.",
+        "cliLoginDisableTitle": "Codex CLI 로그인 비활성화",
+        "cliLoginDisableMessage": "이전 config.toml을 복원하고 API 키 인증 방식으로 전환합니다.",
         "modelIdRequired": "모델 ID는 필수입니다",
         "modelIdInvalid": "잘못된 모델 ID 형식 (영문자, 숫자, 점, 하이픈, 밑줄, 슬래시, 콜론만 허용)",
         "modelIdDuplicate": "모델 ID가 이미 존재합니다"

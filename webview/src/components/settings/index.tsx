@@ -196,6 +196,7 @@ const SettingsView = ({
     handleCloseCodexProviderDialog,
     handleSaveCodexProvider,
     handleSwitchCodexProvider,
+    handleRevokeCodexLocalConfigAuthorization,
     handleDeleteCodexProvider,
     confirmDeleteCodexProvider,
     cancelDeleteCodexProvider,
@@ -441,11 +442,12 @@ const SettingsView = ({
               codexProviders={codexProviders}
               codexLoading={codexLoading}
               onAddCodexProvider={handleAddCodexProvider}
-              onEditCodexProvider={handleEditCodexProvider}
-              onDeleteCodexProvider={handleDeleteCodexProvider}
-              onSwitchCodexProvider={handleSwitchCodexProvider}
-              addToast={addToast}
-            />
+                onEditCodexProvider={handleEditCodexProvider}
+                onDeleteCodexProvider={handleDeleteCodexProvider}
+                onSwitchCodexProvider={handleSwitchCodexProvider}
+                onRevokeCodexLocalConfigAuthorization={handleRevokeCodexLocalConfigAuthorization}
+                addToast={addToast}
+              />
           </div>
 
           {/* SDK dependency management */}

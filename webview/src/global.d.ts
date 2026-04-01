@@ -632,6 +632,16 @@ interface Window {
   dependencyUpdateAvailable?: (json: string) => void;
 
   /**
+   * Dependency versions loaded callback
+   */
+  dependencyVersionsLoaded?: (json: string) => void;
+
+  /**
+   * Pending dependency versions payload before settings initialization
+   */
+  __pendingDependencyVersions?: string;
+
+  /**
    * Pending dependency updates payload before settings initialization
    */
   __pendingDependencyUpdates?: string;

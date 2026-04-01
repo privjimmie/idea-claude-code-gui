@@ -1,5 +1,6 @@
 package com.github.claudecodegui.provider.codex;
 
+import com.github.claudecodegui.settings.CodemossSettingsService;
 import com.github.claudecodegui.util.PlatformUtils;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
@@ -154,6 +155,9 @@ public class CodexHistoryReader {
      * Uses memory cache and file index for performance optimization.
      */
     public List<SessionInfo> readAllSessions() throws IOException {
+        if (!isCodexLocalConfigAuthorized()) {
+            return List.of();
+        }
         return indexService.readAllSessions();
     }
 
@@ -257,6 +261,12 @@ public class CodexHistoryReader {
     }
 
     public String getSessionMessagesAsJson(String sessionId) {
+        if (!isCodexLocalConfigAuthorized()) {
+            Map<String, Object> result = new HashMap<>();
+            result.put("success", true);
+            result.put("messages", List.of());
+            return gson.toJson(result);
+        }
         return sessionService.getSessionMessagesAsJson(sessionId);
     }
 
@@ -268,6 +278,32 @@ public class CodexHistoryReader {
      * @param cutoffTime  earliest timestamp (ms) to include; 0 means no cutoff (all time)
      */
     public ProjectStatistics getProjectStatistics(String projectPath, long cutoffTime) {
+        if (!isCodexLocalConfigAuthorized()) {
+            ProjectStatistics stats = new ProjectStatistics();
+            stats.projectPath = projectPath;
+            stats.projectName = projectPath != null ? Paths.get(projectPath).getFileName().toString() : "";
+            stats.totalSessions = 0;
+            stats.totalUsage = new UsageData();
+            stats.estimatedCost = 0;
+            stats.sessions = List.of();
+            stats.dailyUsage = List.of();
+            stats.weeklyComparison = new WeeklyComparison();
+            stats.weeklyComparison.currentWeek = new WeeklyComparison.WeekData();
+            stats.weeklyComparison.lastWeek = new WeeklyComparison.WeekData();
+            stats.weeklyComparison.trends = new WeeklyComparison.Trends();
+            stats.byModel = List.of();
+            stats.lastUpdated = System.currentTimeMillis();
+            return stats;
+        }
         return usageAggregator.getProjectStatistics(projectPath, cutoffTime);
+    }
+
+    private boolean isCodexLocalConfigAuthorized() {
+        try {
+            return new CodemossSettingsService().isCodexLocalConfigAuthorized();
+        } catch (Exception e) {
+            LOG.warn("[CodexHistoryReader] Failed to read Codex local authorization state: " + e.getMessage());
+            return false;
+        }
     }
 }
