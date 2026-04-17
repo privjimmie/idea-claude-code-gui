@@ -1,8 +1,24 @@
 # Security Review
 
-**Date:** 2026-04-01
-**Reviewed version:** 0.3.2 (commit 9958b78)
+**Date:** 2026-04-17 (last reviewed) — also reviewed 2026-04-01 (initial)
+**Reviewed versions:** 0.3.4 (commit 5c3e276), originally 0.3.2 (commit 9958b78)
 **Reviewed by:** Jimmie (with Claude Code)
+
+## Update — 2026-04-17 (v0.3.2 → v0.3.4 delta review)
+
+Reviewed 59 upstream commits between v0.3.2 and v0.3.4. Findings:
+
+- **No new third-party runtime dependencies** added. Only one new dev dependency: `happy-dom` ^20.8.9 (test environment, ~5M weekly downloads on npm, MIT licensed). Not bundled with production plugin.
+- **No new network endpoints or outbound connections** introduced
+- **No new credential-handling code paths**
+- **No suspicious URLs, eval(), Base64-encoded strings, or obfuscation**
+- New code is mostly bug fixes (streaming reliability, permission mode hooks, MCP loading, clipboard freeze fix), i18n updates (pt-BR locale added), refactoring, and **+908 lines of new test coverage**
+- New file `ToolWindowLifecycleDisposableService.java` — properly implements IntelliJ lifecycle disposal
+- SDK definition (`SdkDefinition.java`) updated to support version selector — still only references official `@anthropic-ai/*` and `@openai/codex-sdk` packages
+
+**Verdict for v0.3.4: No new risks introduced. Risk level remains LOW.**
+
+---
 
 ## Summary
 

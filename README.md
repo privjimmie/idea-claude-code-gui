@@ -6,7 +6,7 @@ This is a personal fork built from source for security and trust reasons. Below 
 
 ### Alt 1: Use prebuilt binary
 
-1. Grab the zip from [`build/distributions/idea-claude-code-gui-0.3.2.zip`](build/distributions/idea-claude-code-gui-0.3.2.zip)
+1. Grab the zip from [`build/distributions/idea-claude-code-gui-0.3.4.zip`](build/distributions/idea-claude-code-gui-0.3.4.zip)
 2. Open **Rider** > **Settings** > **Plugins**
 3. Click the **gear icon** > **Install Plugin from Disk...**
 4. Select the zip
@@ -33,7 +33,7 @@ This is a personal fork built from source for security and trust reasons. Below 
    ./gradlew buildPlugin -PtargetIde=RD
    ```
 
-3. The plugin zip will be at `build/distributions/idea-claude-code-gui-0.3.2.zip`
+3. The plugin zip will be at `build/distributions/idea-claude-code-gui-0.3.4.zip`
 
 4. Install in Rider using the same steps as Alt 1
 
