@@ -52,6 +52,8 @@ const MODEL_DESCRIPTION_KEYS: Record<string, string> = {
  */
 const MODEL_ID_TO_MAPPING_KEY: Record<string, string> = {
   'claude-sonnet-4-6': 'sonnet',
+  'claude-opus-4-7': 'opus',
+  'claude-opus-4-7[1m]': 'opus_1m',
   'claude-opus-4-6': 'opus',
   'claude-opus-4-6[1m]': 'opus_1m',
   'claude-haiku-4-5': 'haiku',

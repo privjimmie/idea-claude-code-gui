@@ -260,13 +260,23 @@ export const CLAUDE_MODELS: ModelInfo[] = [
     description: 'Sonnet 4.6 · Use the default model',
   },
   {
+    id: 'claude-opus-4-7',
+    label: 'Opus 4.7',
+    description: 'Opus 4.7 · Latest and most capable',
+  },
+  {
+    id: 'claude-opus-4-7[1m]',
+    label: 'Opus 4.7 (1M context)',
+    description: 'Opus 4.7 for long sessions',
+  },
+  {
     id: 'claude-opus-4-6',
     label: 'Opus 4.6',
-    description: 'Opus 4.6 · Latest and most capable',
+    description: 'Opus 4.6 · Previous generation',
   },
   {
     id: 'claude-opus-4-6[1m]',
-    label: 'Opus (1M context)',
+    label: 'Opus 4.6 (1M context)',
     description: 'Opus 4.6 for long sessions',
   },
   {
