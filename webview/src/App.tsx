@@ -24,9 +24,21 @@ import {
   useFileChangesManagement,
   useModelProviderState,
 } from './hooks';
+import {
+  NEW_SESSION_COMMANDS,
+  RESUME_COMMANDS,
+  PLAN_COMMANDS,
+} from './hooks/useMessageSender';
 import type { ContextInfo, ViewMode } from './hooks';
 import { formatTime } from './utils/helpers';
 import { extractMarkdownContent } from './utils/copyUtils';
+import { applyDiffTheme, getStoredDiffTheme } from './utils/diffTheme';
+import { extractTodosFromToolUse } from './utils/todoToolNormalization';
+import {
+  finalizeSubagentsForSettledTurn,
+  finalizeTodosForSettledTurn,
+  sliceLatestConversationTurn,
+} from './utils/turnScope';
 import type { Attachment, ChatInputBoxHandle } from './components/ChatInputBox/types';
 import { StatusPanel, StatusPanelErrorBoundary } from './components/StatusPanel';
 import { ToastContainer, type ToastMessage } from './components/Toast';
@@ -42,7 +54,6 @@ import { APP_VERSION } from './version/version';
 import type {
   ClaudeMessage,
   HistoryData,
-  TodoItem,
   ToolResultBlock,
 } from './types';
 
@@ -116,6 +127,12 @@ const App = () => {
   // ── Theme & context actions ──
   useThemeInit();
   useContextActions();
+
+  // Apply diff theme on app startup so diff styles work before opening Settings.
+  useEffect(() => {
+    const ideTheme = window.__INITIAL_IDE_THEME__ ?? null;
+    applyDiffTheme(getStoredDiffTheme(), ideTheme);
+  }, []);
 
   // ── Scroll behavior ──
   const {
@@ -293,6 +310,7 @@ const App = () => {
     setMessages, setLoading, setLoadingStartTime, setStreamingActive,
     setSettingsInitialTab, setCurrentView,
     forceCreateNewSession,
+    handleModeSelect,
   });
 
   // ── Message queue ──
@@ -302,16 +320,32 @@ const App = () => {
     dequeue: dequeueMessage,
   } = useMessageQueue({ isLoading: loading, onExecute: executeMessage });
 
-  // handleSubmit with queue support (new session commands bypass loading check)
+  // handleSubmit with queue support (new session and local commands bypass loading check)
   const handleSubmit = useCallback((content: string, attachments?: Attachment[]) => {
     const text = content.replace(/[\u200B-\u200D\uFEFF]/g, '').trim();
     const hasAttachments = Array.isArray(attachments) && attachments.length > 0;
     if (!text && !hasAttachments) return;
-    // New session commands work even while loading
+    // Local commands work even while loading
     if (text.startsWith('/')) {
       const command = text.split(/\s+/)[0].toLowerCase();
-      if (['/new', '/clear', '/reset'].includes(command)) {
+      // New session commands
+      if (NEW_SESSION_COMMANDS.has(command)) {
         forceCreateNewSession();
+        return;
+      }
+      // /resume - open history view
+      if (RESUME_COMMANDS.has(command)) {
+        setCurrentView('history');
+        return;
+      }
+      // /plan - switch to plan mode
+      if (PLAN_COMMANDS.has(command)) {
+        if (currentProvider === 'codex') {
+          addToast(t('chat.planModeNotAvailableForCodex', { defaultValue: 'Plan mode is not available for Codex provider' }), 'warning');
+        } else {
+          handleModeSelect('plan');
+          addToast(t('chat.planModeEnabled', { defaultValue: 'Plan mode enabled' }), 'info');
+        }
         return;
       }
     }
@@ -321,7 +355,7 @@ const App = () => {
       return;
     }
     hookHandleSubmit(content, attachments);
-  }, [loading, enqueueMessage, hookHandleSubmit, forceCreateNewSession]);
+  }, [loading, enqueueMessage, hookHandleSubmit, forceCreateNewSession, currentProvider, handleModeSelect, setCurrentView, addToast, t]);
 
   // ── File changes management ──
   const {
@@ -346,8 +380,14 @@ const App = () => {
     handleDiscardAllRaw(filteredFileChanges);
   }, [handleDiscardAllRaw, filteredFileChanges]);
 
+  const latestTurnMessages = useMemo(() => sliceLatestConversationTurn(messages), [messages]);
+
   // ── Subagents ──
-  const subagents = useSubagents({ messages, getContentBlocks, findToolResult });
+  const latestTurnSubagents = useSubagents({ messages: latestTurnMessages, getContentBlocks, findToolResult });
+  const subagents = useMemo(
+    () => finalizeSubagentsForSettledTurn(latestTurnSubagents, streamingActive),
+    [latestTurnSubagents, streamingActive],
+  );
 
   // ── Rewind handlers ──
   const {
@@ -361,25 +401,27 @@ const App = () => {
 
   // ── Computed values ──
 
-  // Extract the latest todos from messages for global TodoPanel display
+  // Extract todos from the latest turn only so the status panel reflects the
+  // current/most-recent task, instead of accumulating historical plans forever.
   const globalTodos = useMemo(() => {
-    for (let i = messages.length - 1; i >= 0; i--) {
-      const msg = messages[i];
+    let latestTodos: ReturnType<typeof extractTodosFromToolUse> = null;
+    for (let i = latestTurnMessages.length - 1; i >= 0; i--) {
+      const msg = latestTurnMessages[i];
       if (msg.type !== 'assistant') continue;
       const blocks = getContentBlocks(msg);
       for (let j = blocks.length - 1; j >= 0; j--) {
-        const block = blocks[j];
-        if (
-          block.type === 'tool_use' &&
-          block.name?.toLowerCase() === 'todowrite' &&
-          Array.isArray((block.input as { todos?: TodoItem[] })?.todos)
-        ) {
-          return (block.input as { todos: TodoItem[] }).todos;
+        const todos = extractTodosFromToolUse(blocks[j]);
+        if (todos && todos.length > 0) {
+          latestTodos = todos;
+          break;
         }
       }
+      if (latestTodos) {
+        break;
+      }
     }
-    return [];
-  }, [messages]);
+    return finalizeTodosForSettledTurn(latestTodos ?? [], streamingActive);
+  }, [latestTurnMessages, getContentBlocks, streamingActive]);
 
   const canRewindFromMessageIndex = (userMessageIndex: number) => {
     if (userMessageIndex < 0 || userMessageIndex >= mergedMessages.length) return false;

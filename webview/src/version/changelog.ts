@@ -13,6 +13,114 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_DATA: ChangelogEntry[] = [
   {
+    version: '0.3.4',
+    date: '2026-04-09',
+    content: {
+      en: `✨ Features
+- Add bundled Claude CLI slash commands to the registry (\`/batch\`, \`/claude-api\`, \`/debug\`, \`/loop\`, \`/simplify\`, \`/update-config\`) and unify local command handling across new-session, resume, and plan flows
+- Add Brazilian Portuguese (\`pt-BR\`) locale and update related translations
+- Show response duration beneath completed assistant messages, with updated localized labels across all supported locales
+
+🐛 Fixes
+- Fix WebView freezing on \`Ctrl+C\` by moving clipboard read/write off the CEF browser thread
+- Align permission mode hooks and tool approval behavior with Claude CLI: enforce plan-mode approvals correctly, auto-approve Agent/Task in plan mode, allow \`PLAN.md\` edits, and tighten MultiEdit/path validation
+- Fix duplicate text and thinking blocks during streaming merge by deduplicating cumulative snapshots on both backend and frontend, with added unit tests
+- Fix chat text size inconsistency by reusing the editor font size variable
+- Fix copy button visibility for tool-only assistant messages and merge assistant messages correctly across \`tool_result\`-only boundaries
+
+🔧 Improvements
+- Make the response duration label more conversational across all locales`,
+      zh: `✨ Features
+- 新增 Claude CLI 内置斜杠命令注册：支持 \`/batch\`、\`/claude-api\`、\`/debug\`、\`/loop\`、\`/simplify\`、\`/update-config\`，并统一新会话、恢复会话与计划模式下的本地命令处理逻辑
+- 新增巴西葡萄牙语（\`pt-BR\`）界面语言，并补充相关翻译
+- 在已完成的助手消息下方显示响应耗时，并同步更新所有支持语言中的本地化文案
+
+🐛 Fixes
+- 修复 \`Ctrl+C\` 复制时 WebView 卡顿的问题：将剪贴板读写移出 CEF 浏览器线程
+- 修复权限模式和工具审批行为与 Claude CLI 不一致的问题：正确执行计划模式审批、在计划模式下自动批准 Agent/Task、允许编辑 \`PLAN.md\`，并加强 MultiEdit 与路径校验
+- 修复流式合并过程中重复出现文本块和 thinking 块的问题：在前后端同时对累积快照做去重，并补充单元测试
+- 修复聊天文本字号与编辑器不一致的问题，改为复用编辑器字体大小变量
+- 修复仅包含工具调用的助手消息仍显示复制按钮的问题，并正确跨 \`tool_result\` 边界合并连续的助手消息
+
+🔧 Improvements
+- 优化所有语言中的响应耗时文案，使表达更自然、更口语化`,
+    },
+  },
+  {
+    version: '0.3.3',
+    date: '2026-04-01',
+    content: {
+      en: `✨ Features
+- Add SDK version selector with remote/fallback version lists, version comparison, and rollback warnings; add unit tests for versioning and provider management
+- Add Codex CLI Login virtual provider: reads ~/.codex/config.toml and auth.json with explicit user authorization; gate Codex MCP server access behind local config authorization; add i18n for all 9 locales
+- Add EditToolBlock with LCS-based diff display, line number navigation, and click-to-jump; add EditToolGroupBlock for batch edit display; integrate IDEA file open/refresh/diff actions
+- Add diff theme system with 4 modes (follow IDE / editor / light / soft-dark) and compact dropdown selector
+- Add MCP tool name and input normalization for edit_file/write_file tools
+- Add streaming heartbeat (10s) to prevent false stall detection during tool execution; add sequence numbers to discard stale updateMessages snapshots
+- Add settings toggles for AI commit message generation and status bar widget visibility, persisted with restart-required toast
+- Enhance Codex mode task plan and sub-agent display; fix duplicate tool call rendering
+- Add pre-React callback buffering for early window bridge messages; persist tab session state across IDE restarts
+- Add preserveLatestMessagesOnShrink for Codex conversation compaction
+
+🐛 Fixes
+- Fix stream reliability for long sessions: adaptive JCEF throttling (500ms–5s), 45s stream stall watchdog, debounce scroll-to-bottom with rAF
+- Fix watchdog incorrectly reloading webview during active streaming: extend heartbeat to 3 minutes; replay onStreamStart after reload; add 15s safety timeout for session transition guard
+- Fix stale rAF updateMessages overwriting final state after stream ends: add cancellation mechanism and strip __turnId from streaming messages
+- Fix assistant messages from different streaming turns being incorrectly merged
+- Fix Codex session ID mismatch: use UUID from session_meta.id as canonical ID; fix filename matching to contains for UUID-embedded filenames; strip system XML tags before title extraction
+- Fix Codex history file too large causing messages not to display in real time after restoring history #kyon777
+- Fix ChatInputBox dropdown crashing when icon values are not strings; safely handle inline SVG icons for @ completions #gadfly3173 (#820)
+- Fix tool window and detached session cleanup: ensure tabs own disposal; add project-scoped cleanup #gadfly3173 (#795)
+- Fix hardcoded diff colors in EditToolGroupBlock to use CSS variables
+- Hide transient internal tool names after streaming completes
+
+⚡ Performance
+- Coalesce updateMessages via rAF in frontend to avoid parsing large JSON payloads on every 50ms push, eliminating the "fake freeze" symptom for long sessions
+- Adaptive JCEF throttling in StreamMessageCoalescer: scale update interval based on payload size to prevent IPC saturation
+
+🔧 Improvements
+- Extract tool name/input normalization from codex-event-handler into dedicated codex-tool-normalization.js module
+- Refactor diff theme selector from card-style buttons to compact dropdown; fix diff row background not filling full width
+- Replace Swing JFileChooser with IntelliJ FileChooser API for skill file selection
+- Extract shared normalizeTodoStatus/RawTodoItem into todoShared.ts; tighten isError detection to avoid false positives
+- Security: add semver validation in DependencyManager to prevent npm install argument injection; strip exception details from user-facing errors; fix resource leak in ProjectConfigHandler; add Javadoc security note to CodexSettingsManager`,
+      zh: `✨ Features
+- 新增 SDK 版本选择器：支持远程/本地回退版本列表、版本对比和回滚警告，新增版本管理和 Provider 单元测试
+- 新增 Codex CLI Login 虚拟 Provider：读取 ~/.codex/config.toml 和 auth.json，需用户明确授权；Codex MCP 服务器访问受本地配置授权限制；更新 9 种语言国际化翻译
+- 新增 EditToolBlock：基于 LCS 算法展示差异、行号显示和点击跳转；新增 EditToolGroupBlock 批量编辑展示；集成 IDEA 文件打开/刷新/差异对比
+- 新增 Diff 主题系统：4 种模式（跟随 IDE / 编辑器 / 浅色 / 柔和深色），选择器改为紧凑下拉框
+- 新增 MCP 工具名称和输入规范化（支持 edit_file/write_file）
+- 新增流式心跳（10s）防止工具执行期间误判流卡死；新增序列号机制丢弃过期的 updateMessages 快照
+- 新增 AI 提交消息生成和状态栏 Widget 显示的设置开关，重启后生效
+- 增强 Codex 模式任务计划与子代理展示，修复工具调用重复渲染
+- 新增 React 初始化前的回调缓冲机制；跨 IDE 重启持久化 Tab 会话状态
+- 新增 Codex 对话压缩时保留最新消息（preserveLatestMessagesOnShrink）
+
+🐛 Fixes
+- 修复长会话流式可靠性及 UI 卡顿：StreamMessageCoalescer 自适应 JCEF 节流（500ms–5s），45s Stream Watchdog，rAF 防抖 scroll-to-bottom
+- 修复流式传输期间看门狗误判并重载 WebView：流式过程中心跳超时延长至 3 分钟；WebView 重载后重放 onStreamStart；会话切换守卫添加 15s 安全超时
+- 修复流结束后 rAF updateMessages 过期快照覆盖最终状态：新增取消机制，去除 __turnId
+- 修复不同流式轮次的助手消息被错误合并
+- 修复 Codex 会话 ID 不匹配：使用 session_meta.id 的 UUID 作为标准 ID；文件名匹配改为 contains；标题提取前去除系统 XML 标签
+- 修复 Codex 历史文件过大导致恢复历史后继续对话时消息不实时显示 #kyon777
+- 修复 ChatInputBox 下拉列表在图标值非字符串时崩溃，安全处理 @ 文件/文件夹补全的 SVG 图标 #gadfly3173 (#820)
+- 修复工具窗口和分离会话资源泄漏，项目关闭时清理分离会话 #gadfly3173 (#795)
+- 修复 EditToolGroupBlock 中硬编码差异颜色，改为 CSS 变量
+- 流式传输结束后隐藏内部工具名称
+
+⚡ Performance
+- 前端通过 rAF 合并 updateMessages 调用，避免每 50ms 解析大型 JSON 负载，消除长会话"假卡死"现象
+- StreamMessageCoalescer 自适应 JCEF 节流：根据负载大小动态调整更新间隔，防止 IPC 饱和
+
+🔧 Improvements
+- 从 codex-event-handler 提取工具名称/输入规范化到独立的 codex-tool-normalization.js 模块
+- 重构 Diff 主题选择器为紧凑下拉框；修复差异行背景不充满全宽的问题
+- 技能文件选择改用 IntelliJ FileChooser API，替换 Swing JFileChooser
+- 提取共享的 normalizeTodoStatus/RawTodoItem 到 todoShared.ts；收紧 isError 检测避免误报
+- 安全加固：DependencyManager 新增 semver 格式校验防止参数注入；用户侧错误消息去除异常详情；修复 ProjectConfigHandler 资源泄漏；为 CodexSettingsManager 添加 JWT 安全说明`,
+    },
+  },
+  {
     version: '0.3.2',
     date: '2026-03-25',
     content: {

@@ -186,6 +186,15 @@ public class SessionCallbackAdapter implements ClaudeSession.SessionCallback {
     @Override
     public void onSummaryReceived(String summary) {
         LOG.debug("Summary received: " + (summary != null ? summary.substring(0, Math.min(50, summary.length())) : "null"));
+        if (isInactive() || summary == null || summary.trim().isEmpty()) {
+            return;
+        }
+        ApplicationManager.getApplication().invokeLater(() -> {
+            if (isInactive()) {
+                return;
+            }
+            jsTarget.callJavaScript("showSummary", JsUtils.escapeJs(summary));
+        });
     }
 
     @Override
@@ -218,20 +227,44 @@ public class SessionCallbackAdapter implements ClaudeSession.SessionCallback {
         if (isInactive()) {
             return;
         }
-        contentDeltaThrottler.flushNow();
-        thinkingDeltaThrottler.flushNow();
-        streamCoalescer.onStreamEnd();
-        streamCoalescer.flush(() -> {
+        // Each step is wrapped in safeRun so that a failure in one step
+        // (e.g., flushNow throwing due to a disposed throttler, or JCEF
+        // rejecting a large payload) does not prevent the critical
+        // onStreamEnd signal from reaching the frontend.
+        safeRun("contentDeltaThrottler.flushNow", contentDeltaThrottler::flushNow);
+        safeRun("thinkingDeltaThrottler.flushNow", thinkingDeltaThrottler::flushNow);
+        safeRun("streamCoalescer.onStreamEnd", streamCoalescer::onStreamEnd);
+
+        // Flush pending messages first (fire-and-forget — do NOT nest onStreamEnd
+        // inside the flush callback).  Previously the JS onStreamEnd signal was
+        // chained inside flush's 3-layer async pipeline:
+        //   flush → executeOnPooledThread → invokeLater(1) → callback → callJavaScript → invokeLater(2)
+        // Any failure in that chain silently swallowed the signal, leaving the
+        // frontend permanently stuck in streaming state.
+        streamCoalescer.flush(null);
+
+        // Send onStreamEnd independently via a single invokeLater.
+        // This guarantees the signal reaches the frontend even if the flush
+        // payload is rejected by JCEF (large payload, disposed browser, etc.).
+        ApplicationManager.getApplication().invokeLater(() -> {
             if (isInactive()) {
                 return;
             }
-            jsTarget.callJavaScript("onStreamEnd");
-            jsTarget.callJavaScript("showLoading", "false");
+            safeRun("callJavaScript(onStreamEnd)", () -> jsTarget.callJavaScript("onStreamEnd"));
+            safeRun("callJavaScript(showLoading, false)", () -> jsTarget.callJavaScript("showLoading", "false"));
             if (streamEndCallback != null) {
-                streamEndCallback.run();
+                safeRun("streamEndCallback", streamEndCallback);
             }
-            LOG.debug("Stream ended - flushed messages before notifying frontend");
+            LOG.debug("Stream ended - notified frontend independently of flush");
         });
+    }
+
+    private static void safeRun(String label, Runnable action) {
+        try {
+            action.run();
+        } catch (Exception e) {
+            LOG.warn(label + " failed: " + e.getMessage(), e);
+        }
     }
 
     @Override

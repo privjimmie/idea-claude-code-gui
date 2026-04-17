@@ -88,7 +88,8 @@
     "unknownFile": "未知文件",
     "attachmentsUploaded": "[已上传附件]",
     "streamingConnected": "Claude 已成功连接，正在理解问题",
-    "showEarlierMessages": "显示之前的 {{count}} 条消息"
+    "showEarlierMessages": "显示之前的 {{count}} 条消息",
+    "totalDuration": "本次耗时"
   },
   "settings": {
     "title": "设置",
@@ -119,7 +120,8 @@
         "french": "Français",
         "japanese": "日本語",
         "russian": "Русский",
-        "korean": "한국어"
+        "korean": "한국어",
+        "portuguese": "Português (Brasil)"
       },
       "nodePath": {
         "label": "Node.js 路径",
@@ -165,6 +167,18 @@
         "disabled": "已折叠",
         "hint": "开启后，聊天中的代码差异将默认展开显示。关闭后，差异默认折叠，可点击展开。"
       },
+      "commitGeneration": {
+        "label": "AI 生成提交信息",
+        "enabled": "已开启",
+        "disabled": "已关闭",
+        "hint": "开启后，在提交对话框中显示「AI 生成提交信息」按钮。关闭后隐藏该按钮。"
+      },
+      "statusBarWidget": {
+        "label": "状态栏信息展示",
+        "enabled": "已开启",
+        "disabled": "已关闭",
+        "hint": "开启后，在 IDE 右下角状态栏显示当前模型和模式信息（如 GUI [Opus] {自动}）。关闭后隐藏。"
+      },
       "sendShortcut": {
         "label": "发送快捷键",
         "enter": "Enter 发送",
@@ -177,6 +191,17 @@
         "custom": "自定义",
         "reset": "恢复默认",
         "hint": "自定义聊天区域的背景颜色，留空则跟随主题默认颜色"
+      },
+      "diffTheme": {
+        "label": "Diff 主题",
+        "follow": "跟随界面",
+        "followDesc": "跟随当前聊天界面明暗主题",
+        "editor": "跟随编辑器",
+        "editorDesc": "尽量贴近 IDE 编辑器的 diff 氛围",
+        "light": "浅色",
+        "lightDesc": "更轻、更贴近当前设置页背景",
+        "softDark": "柔和深色",
+        "softDarkDesc": "保留代码感，但弱化纯黑对比"
       },
       "soundNotification": {
         "label": "任务完成提示音",
@@ -235,9 +260,20 @@
       "uninstall": "卸载",
       "uninstalling": "卸载中...",
       "update": "更新",
+      "installVersion": "安装 {{version}}",
+      "updateToVersion": "更新到 {{version}}",
+      "rollbackToVersion": "回退到 {{version}}",
+      "currentVersionAction": "当前版本",
       "updateAvailable": "有更新",
       "installLogs": "安装日志",
       "waitingForLogs": "等待日志输出...",
+      "targetVersion": "目标版本",
+      "loadingVersions": "版本列表加载中",
+      "installedVersion": "当前版本 {{version}}",
+      "latestStableVersion": "最新稳定版 {{version}}",
+      "targetVersionValue": "目标版本 {{version}}",
+      "versionSourceFallback": "远程版本列表获取失败，当前展示内置推荐版本。你仍然可以手动输入版本号。",
+      "rollbackWarning": "这是回退操作，建议在切换后重新验证相关 AI 功能是否正常。",
       "nodeNotConfigured": "Node.js 未配置，请先在基础配置中设置 Node.js 路径。",
       "installSuccess": "{{name}} 安装成功",
       "installFailed": "安装失败: {{error}}",
@@ -569,6 +605,13 @@
         "modelIdPlaceholder": "模型 ID（必填，如 gpt-4o）",
         "modelLabelPlaceholder": "显示名称（可选）",
         "modelDescPlaceholder": "模型描述（可选）",
+        "cliLoginProviderName": "使用本地配置信息",
+        "cliLoginProviderDescription": "显式授权读取：~/.codex/config.toml 和 auth.json",
+        "cliLoginAuthorizeTitle": "授权读取本地 Codex 配置",
+        "cliLoginAuthorizeMessage": "插件将读取 ~/.codex/config.toml 和 auth.json 中已有的本地配置。",
+        "cliLoginAuthorizeDetail": "此操作不会修改或覆盖您的 config.toml 和 auth.json，您可以随时取消授权。",
+        "cliLoginDisableTitle": "取消本地 Codex 配置授权",
+        "cliLoginDisableMessage": "插件将停止读取 ~/.codex/config.toml 和 auth.json。",
         "modelIdRequired": "请输入模型 ID",
         "modelIdInvalid": "模型 ID 格式无效（仅允许字母、数字、点、连字符、下划线、斜杠和冒号）",
         "modelIdDuplicate": "模型 ID 已存在"
@@ -818,6 +861,7 @@
     "thinkingDisabled": "思考已关闭",
     "configLoading": "配置加载中，请稍后再试",
     "saveSuccess": "保存成功",
+    "restartRequired": "请重启 IDEA 以生效本配置",
     "saveFailed": "保存失败",
     "deleteSuccess": "删除成功",
     "operationFailed": "操作失败",
@@ -1073,6 +1117,7 @@
     "editPrefix": "编辑: {{fileName}}",
     "lineRange": "第 {{start}}-{{end}} 行",
     "lineSingle": "第 {{line}} 行",
+    "editLocationsSuffix": "处",
     "filePath": "文件路径：",
     "unknownTool": "未知工具",
     "bashGroupBatchRun": "批量运行命令",
@@ -1350,7 +1395,7 @@
       "label": "Claude Code"
     },
     "codex": {
-      "label": "Codex Cli"
+      "label": "Codex"
     },
     "gemini": {
       "label": "Gemini Cli"

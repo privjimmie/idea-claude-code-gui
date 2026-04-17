@@ -20,7 +20,7 @@ interface Window {
   /**
    * Update messages from backend
    */
-  updateMessages?: (json: string) => void;
+  updateMessages?: (json: string, sequence?: string | number) => void;
 
   /**
    * Patch a single message UUID without re-sending the full message list.
@@ -41,6 +41,11 @@ interface Window {
    * Show thinking status
    */
   showThinkingStatus?: (value: string | boolean) => void;
+
+  /**
+   * Show conversation summary/compaction notice
+   */
+  showSummary?: (summary: string) => void;
 
   /**
    * Set history data
@@ -244,6 +249,16 @@ interface Window {
    * Update sound notification configuration
    */
   updateSoundNotificationConfig?: (json: string) => void;
+
+  /**
+   * Update AI commit generation enabled state
+   */
+  updateCommitGenerationEnabled?: (json: string) => void;
+
+  /**
+   * Update status bar widget enabled state
+   */
+  updateStatusBarWidgetEnabled?: (json: string) => void;
 
   /**
    * Update current Claude config
@@ -502,7 +517,13 @@ interface Window {
   /**
    * Stream end callback - called when streaming ends
    */
-  onStreamEnd?: () => void;
+  onStreamEnd?: (sequence?: string | number) => void;
+
+  /**
+   * Streaming heartbeat callback - lightweight signal from backend during
+   * tool execution phases to prevent the stall watchdog from falsely triggering.
+   */
+  onStreamingHeartbeat?: () => void;
 
   /**
    * Permission denied callback - called when permission is denied.
@@ -536,6 +557,35 @@ interface Window {
    * clear both React state AND internal refs before starting a new session.
    */
   __resetTransientUiState?: () => void;
+
+  /**
+   * Timestamp of the last streaming activity (content/thinking delta or message update).
+   * Used by the stream stall watchdog to detect when the backend→frontend bridge is broken.
+   */
+  __lastStreamActivityAt?: number;
+
+  /**
+   * Timestamp when the current streaming turn started.
+   * Used to calculate durationMs on the assistant message when the stream ends.
+   */
+  __turnStartedAt?: number;
+
+  /**
+   * Interval handle for the stream stall watchdog.
+   * Stored on window so re-registration of streaming callbacks clears the previous interval.
+   */
+  __stallWatchdogInterval?: ReturnType<typeof setInterval> | null;
+
+  /**
+   * Pending rAF handle and JSON for deferred updateMessages processing.
+   * Stored on window so re-registration of message callbacks cancels stale rAFs.
+   */
+  __pendingUpdateRaf?: number | null;
+  __pendingUpdateJson?: string | null;
+  __pendingUpdateSequence?: number | null;
+  __minAcceptedUpdateSequence?: number;
+  /** Cancel pending rAF-deferred updateMessages (set by messageCallbacks, called by onStreamEnd). */
+  __cancelPendingUpdateMessages?: () => void;
 
   /**
    * Rewind result callback - returns the result of a rewind operation
@@ -608,6 +658,16 @@ interface Window {
   dependencyUpdateAvailable?: (json: string) => void;
 
   /**
+   * Dependency versions loaded callback
+   */
+  dependencyVersionsLoaded?: (json: string) => void;
+
+  /**
+   * Pending dependency versions payload before settings initialization
+   */
+  __pendingDependencyVersions?: string;
+
+  /**
    * Pending dependency updates payload before settings initialization
    */
   __pendingDependencyUpdates?: string;
@@ -637,6 +697,21 @@ interface Window {
   __pendingAskUserQuestionDialogRequests?: string[];
 
   __pendingPlanApprovalDialogRequests?: string[];
+
+  /**
+   * Pending updateMessages payload before React initialization
+   */
+  __pendingUpdateMessages?: string | { json: string; sequence?: number | null };
+
+  /**
+   * Pending status text before React initialization
+   */
+  __pendingStatusText?: string;
+
+  /**
+   * Pending summary text before React initialization
+   */
+  __pendingSummaryText?: string;
 
   /**
    * Pending user message before addUserMessage is registered (for Quick Fix feature)

@@ -8,6 +8,22 @@
 import type { UseWindowCallbacksOptions } from '../../useWindowCallbacks';
 import { sendBridgeEvent } from '../../../utils/bridge';
 import { THROTTLE_INTERVAL } from '../../useStreamingMessages';
+import { parseSequence } from '../parseSequence';
+
+/**
+ * Timeout (ms) for detecting a stalled stream.  If no content/thinking delta
+ * arrives for this duration while isStreamingRef is still true, the frontend
+ * auto-recovers by forcing the stream-end cleanup.  This guards against the
+ * backend onStreamEnd signal being silently dropped by JCEF.
+ *
+ * Set to 60s to avoid false positives during long tool execution phases
+ * (e.g., command execution, file operations) where no content deltas arrive
+ * but the backend is still actively processing.  The backend heartbeat
+ * mechanism in StreamMessageCoalescer keeps __lastStreamActivityAt bumped
+ * via periodic updateMessages re-pushes.
+ */
+const STREAM_STALL_TIMEOUT_MS = 60_000;
+const STREAM_STALL_CHECK_INTERVAL_MS = 5_000;
 
 export function registerStreamingCallbacks(options: UseWindowCallbacksOptions): void {
   const {
@@ -37,10 +53,57 @@ export function registerStreamingCallbacks(options: UseWindowCallbacksOptions): 
     patchAssistantForStreaming,
   } = options;
 
+  // ── Stream stall watchdog ──
+  // Tracks the last time we received any streaming activity (delta or
+  // updateMessages during streaming).  A periodic check auto-recovers
+  // if the backend's onStreamEnd signal was silently lost.
+  // Exposed on window so messageCallbacks can also bump this on updateMessages.
+  //
+  // The interval handle is stored on `window` so that if registerStreamingCallbacks
+  // is called again (e.g., HMR, parent re-render), the previous interval is
+  // cleared first — preventing multiple watchdogs from running simultaneously.
+  if (window.__stallWatchdogInterval != null) {
+    clearInterval(window.__stallWatchdogInterval);
+    window.__stallWatchdogInterval = null;
+  }
+  window.__lastStreamActivityAt = 0;
+
+  const clearStallWatchdog = () => {
+    if (window.__stallWatchdogInterval != null) {
+      clearInterval(window.__stallWatchdogInterval);
+      window.__stallWatchdogInterval = null;
+    }
+  };
+
+  const startStallWatchdog = () => {
+    clearStallWatchdog();
+    window.__lastStreamActivityAt = Date.now();
+    window.__stallWatchdogInterval = setInterval(() => {
+      if (!isStreamingRef.current) {
+        clearStallWatchdog();
+        return;
+      }
+      const elapsed = Date.now() - (window.__lastStreamActivityAt ?? 0);
+      if (elapsed >= STREAM_STALL_TIMEOUT_MS) {
+        console.warn(
+          `[StreamWatchdog] Stream stalled for ${elapsed}ms — forcing stream-end recovery`,
+        );
+        clearStallWatchdog();
+        // Trigger the same cleanup as onStreamEnd
+        if (typeof window.onStreamEnd === 'function') {
+          window.onStreamEnd();
+        }
+      }
+    }, STREAM_STALL_CHECK_INTERVAL_MS);
+  };
+
   window.onStreamStart = () => {
     if (window.__sessionTransitioning) return;
+    // Record turn start time for duration calculation in onStreamEnd
+    window.__turnStartedAt = Date.now();
     streamingContentRef.current = '';
     isStreamingRef.current = true;
+    startStallWatchdog();
     useBackendStreamingRenderRef.current = false;
     autoExpandedThinkingKeysRef.current.clear();
     setStreamingActive(true);
@@ -79,6 +142,7 @@ export function registerStreamingCallbacks(options: UseWindowCallbacksOptions): 
   window.onContentDelta = (delta: string) => {
     if (window.__sessionTransitioning) return;
     if (!isStreamingRef.current) return;
+    window.__lastStreamActivityAt = Date.now();
     streamingContentRef.current += delta;
     activeThinkingSegmentIndexRef.current = -1;
 
@@ -133,6 +197,7 @@ export function registerStreamingCallbacks(options: UseWindowCallbacksOptions): 
   window.onThinkingDelta = (delta: string) => {
     if (window.__sessionTransitioning) return;
     if (!isStreamingRef.current) return;
+    window.__lastStreamActivityAt = Date.now();
     activeTextSegmentIndexRef.current = -1;
 
     let forceUpdate = false;
@@ -182,10 +247,23 @@ export function registerStreamingCallbacks(options: UseWindowCallbacksOptions): 
     }
   };
 
-  window.onStreamEnd = () => {
+  window.onStreamEnd = (sequence?: string | number) => {
     if (window.__sessionTransitioning) return;
+    clearStallWatchdog();
+    const parsedSequence = parseSequence(sequence);
+    if (parsedSequence != null) {
+      window.__minAcceptedUpdateSequence = Math.max(window.__minAcceptedUpdateSequence ?? 0, parsedSequence);
+    }
     // Notify backend about stream completion for tab status indicator
     sendBridgeEvent('tab_status_changed', JSON.stringify({ status: 'completed' }));
+
+    // FIX: Cancel any pending coalesced updateMessages rAF.  If onStreamEnd
+    // fires between the rAF scheduling and execution, the stale snapshot
+    // would be processed in the non-streaming path after refs are cleared,
+    // overwriting the final state with an outdated message structure.
+    if (typeof window.__cancelPendingUpdateMessages === 'function') {
+      window.__cancelPendingUpdateMessages();
+    }
 
     // Clear pending throttle timeouts — their content is already in streamingContentRef
     if (contentUpdateTimeoutRef.current) {
@@ -200,6 +278,10 @@ export function registerStreamingCallbacks(options: UseWindowCallbacksOptions): 
     // Snapshot keys that need collapsing BEFORE they are cleared inside the updater.
     const keysToCollapse = new Set(autoExpandedThinkingKeysRef.current);
 
+    // Snapshot turn start time BEFORE entering the updater
+    const turnStartedAt = window.__turnStartedAt;
+    window.__turnStartedAt = undefined;
+
     // Flush final content AND clear streaming refs inside the same updater.
     // This ensures any previously queued setMessages updater (e.g. from
     // updateMessages) still reads valid refs when it executes, because React
@@ -210,10 +292,20 @@ export function registerStreamingCallbacks(options: UseWindowCallbacksOptions): 
       if (prev.length > 0 && idx >= 0 && idx < prev.length && prev[idx]?.type === 'assistant') {
         const finalContent = streamingContentRef.current;
         newMessages = [...prev];
+        // FIX: Clear __turnId from the streaming message. After streaming ends,
+        // the backend's updateMessages snapshots contain the correct message
+        // structure.  Stale __turnId can interfere with mergeConsecutiveAssistantMessages
+        // when subsequent backend snapshots carry different message splits.
+        const { __turnId: _removedTurnId, ...restWithoutTurnId } = newMessages[idx];
+        // Calculate durationMs and stamp it on the assistant message
+        const durationMs = (typeof turnStartedAt === 'number' && turnStartedAt > 0)
+          ? Date.now() - turnStartedAt
+          : undefined;
         newMessages[idx] = {
-          ...newMessages[idx],
+          ...restWithoutTurnId,
           content: finalContent || newMessages[idx].content,
           isStreaming: false,
+          ...(durationMs != null ? { durationMs } : {}),
         };
       }
 
@@ -255,6 +347,14 @@ export function registerStreamingCallbacks(options: UseWindowCallbacksOptions): 
     setLoading(false);
     setLoadingStartTime(null);
     setIsThinking(false);
+  };
+
+  // Streaming heartbeat — lightweight signal from backend during tool execution
+  // phases where no content deltas arrive.  Keeps the stall watchdog alive.
+  window.onStreamingHeartbeat = () => {
+    if (isStreamingRef.current && window.__lastStreamActivityAt !== undefined) {
+      window.__lastStreamActivityAt = Date.now();
+    }
   };
 
   // Permission denied callback — marks incomplete tool calls as "interrupted"

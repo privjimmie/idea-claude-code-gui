@@ -88,7 +88,8 @@
     "unknownFile": "Unknown file",
     "attachmentsUploaded": "[Attachments Uploaded]",
     "streamingConnected": "Claude connected, understanding your question",
-    "showEarlierMessages": "Show {{count}} earlier messages"
+    "showEarlierMessages": "Show {{count}} earlier messages",
+    "totalDuration": "This reply took"
   },
   "settings": {
     "title": "Settings",
@@ -119,7 +120,8 @@
         "french": "Français",
         "japanese": "日本語",
         "russian": "Русский",
-        "korean": "한국어"
+        "korean": "한국어",
+        "portuguese": "Português (Brasil)"
       },
       "nodePath": {
         "label": "Node.js Path",
@@ -165,6 +167,18 @@
         "disabled": "Collapsed",
         "hint": "When enabled, code diffs in chat will be expanded by default. When disabled, diffs start collapsed and can be expanded by clicking."
       },
+      "commitGeneration": {
+        "label": "AI Commit Message Generation",
+        "enabled": "Enabled",
+        "disabled": "Disabled",
+        "hint": "When enabled, shows the 'AI Generate Commit Message' button in the commit dialog. When disabled, the button is hidden."
+      },
+      "statusBarWidget": {
+        "label": "Status Bar Info Display",
+        "enabled": "Enabled",
+        "disabled": "Disabled",
+        "hint": "When enabled, shows current model and mode info in the IDE status bar (e.g. GUI [Opus] {Auto}). When disabled, the widget is hidden."
+      },
       "sendShortcut": {
         "label": "Send Shortcut",
         "enter": "Enter to Send",
@@ -177,6 +191,17 @@
         "custom": "Custom",
         "reset": "Reset",
         "hint": "Customize the chat area background color. Leave empty to follow the theme default."
+      },
+      "diffTheme": {
+        "label": "Diff Theme",
+        "follow": "Follow UI",
+        "followDesc": "Match the current chat UI light or dark theme",
+        "editor": "Follow Editor",
+        "editorDesc": "Stay closer to the IDE editor diff atmosphere",
+        "light": "Light",
+        "lightDesc": "Cleaner and better integrated with the settings page",
+        "softDark": "Soft Dark",
+        "softDarkDesc": "Keep code contrast without the harsh black background"
       },
       "soundNotification": {
         "label": "Task Completion Sound",
@@ -235,9 +260,20 @@
       "uninstall": "Uninstall",
       "uninstalling": "Uninstalling...",
       "update": "Update",
+      "installVersion": "Install {{version}}",
+      "updateToVersion": "Update to {{version}}",
+      "rollbackToVersion": "Rollback to {{version}}",
+      "currentVersionAction": "Current version",
       "updateAvailable": "Update available",
       "installLogs": "Install Logs",
       "waitingForLogs": "Waiting for log output...",
+      "targetVersion": "Target version",
+      "loadingVersions": "Version list loading",
+      "installedVersion": "Installed {{version}}",
+      "latestStableVersion": "Latest stable {{version}}",
+      "targetVersionValue": "Target {{version}}",
+      "versionSourceFallback": "Remote versions could not be loaded. Showing the built-in recommended versions instead. You can still enter a version manually.",
+      "rollbackWarning": "This is a rollback operation. Re-check the related AI features after switching versions.",
       "nodeNotConfigured": "Node.js is not configured. Please set the Node.js path in Basic Settings first.",
       "installSuccess": "{{name}} installed successfully",
       "installFailed": "Installation failed: {{error}}",
@@ -564,6 +600,13 @@
         "modelIdPlaceholder": "Model ID (required, e.g., gpt-4o)",
         "modelLabelPlaceholder": "Display name (optional)",
         "modelDescPlaceholder": "Model description (optional)",
+        "cliLoginProviderName": "Codex CLI Login",
+        "cliLoginProviderDescription": "Use ChatGPT subscription credentials from Codex CLI",
+        "cliLoginAuthorizeTitle": "Authorize Local Codex Config Access",
+        "cliLoginAuthorizeMessage": "The plugin will read the existing local configuration from ~/.codex/config.toml and auth.json.",
+        "cliLoginAuthorizeDetail": "This will not modify or overwrite your config.toml or auth.json, and you can revoke the authorization at any time.",
+        "cliLoginDisableTitle": "Revoke Local Codex Config Authorization",
+        "cliLoginDisableMessage": "The plugin will stop reading ~/.codex/config.toml and auth.json.",
         "modelIdRequired": "Model ID is required",
         "modelIdInvalid": "Invalid model ID format (only letters, numbers, dots, hyphens, underscores, slashes and colons allowed)",
         "modelIdDuplicate": "Model ID already exists"
@@ -813,6 +856,7 @@
     "thinkingDisabled": "Thinking disabled",
     "configLoading": "Configuration loading, please try again",
     "saveSuccess": "Saved successfully",
+    "restartRequired": "Please restart IDEA for this setting to take effect",
     "saveFailed": "Save failed",
     "deleteSuccess": "Deleted successfully",
     "operationFailed": "Operation failed",
@@ -1068,6 +1112,7 @@
     "editPrefix": "Edit: {{fileName}}",
     "lineRange": "Lines {{start}}-{{end}}",
     "lineSingle": "Line {{line}}",
+    "editLocationsSuffix": " more",
     "filePath": "File path:",
     "unknownTool": "Unknown tool",
     "bashGroupBatchRun": "Batch Run Commands",
@@ -1345,7 +1390,7 @@
       "label": "Claude Code"
     },
     "codex": {
-      "label": "Codex Cli"
+      "label": "Codex"
     },
     "gemini": {
       "label": "Gemini Cli"

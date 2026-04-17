@@ -88,7 +88,8 @@
     "unknownFile": "Unknown file",
     "attachmentsUploaded": "[添付ファイルがアップロードされました]",
     "streamingConnected": "Claudeに接続しました、質問を理解しています",
-    "showEarlierMessages": "以前の{{count}}件のメッセージを表示"
+    "showEarlierMessages": "以前の{{count}}件のメッセージを表示",
+    "totalDuration": "今回の応答時間"
   },
   "settings": {
     "title": "設定",
@@ -119,7 +120,8 @@
         "french": "Français",
         "japanese": "日本語",
         "russian": "Русский",
-        "korean": "한국어"
+        "korean": "한국어",
+        "portuguese": "Português (Brasil)"
       },
       "nodePath": {
         "label": "Node.jsパス",
@@ -514,6 +516,13 @@
         "modelIdPlaceholder": "Model ID (required, e.g., gpt-4o)",
         "modelLabelPlaceholder": "Display name (optional)",
         "modelDescPlaceholder": "Model description (optional)",
+        "cliLoginProviderName": "Codex CLI ログイン",
+        "cliLoginProviderDescription": "Codex CLI の ChatGPT サブスクリプションのログインを使用",
+        "cliLoginAuthorizeTitle": "Codex CLI ログインを有効",
+        "cliLoginAuthorizeMessage": "config.toml をクリアし、Codex CLI の ChatGPT サブスクリプションのログインを使用します。",
+        "cliLoginAuthorizeDetail": "ターミナルで 'codex login' でログイン済みか確認してください。現在の config.toml はバックアップされます。",
+        "cliLoginDisableTitle": "Codex CLI ログインを無効",
+        "cliLoginDisableMessage": "以前の config.toml を復元し、API Key 認証に切り替えます。",
         "modelIdRequired": "Model ID is required",
         "modelIdInvalid": "Invalid model ID format (only letters, numbers, dots, hyphens, underscores, slashes and colons allowed)",
         "modelIdDuplicate": "Model ID already exists"
@@ -1208,7 +1217,7 @@
       "label": "Claude Code"
     },
     "codex": {
-      "label": "Codex Cli"
+      "label": "Codex"
     },
     "gemini": {
       "label": "Gemini Cli"

@@ -88,7 +88,8 @@
     "unknownFile": "Unknown file",
     "attachmentsUploaded": "[अटैचमेंट अपलोड हो गए]",
     "streamingConnected": "Claude कनेक्ट हो गया, आपके प्रश्न को समझ रहा है",
-    "showEarlierMessages": "{{count}} पुराने संदेश दिखाएं"
+    "showEarlierMessages": "{{count}} पुराने संदेश दिखाएं",
+    "totalDuration": "इस जवाब में लगा समय"
   },
   "settings": {
     "title": "सेटिंग्स",
@@ -119,7 +120,8 @@
         "french": "Français",
         "japanese": "日本語",
         "russian": "Русский",
-        "korean": "한국어"
+        "korean": "한국어",
+        "portuguese": "Português (Brasil)"
       },
       "nodePath": {
         "label": "Node.js पथ",
@@ -509,6 +511,13 @@
         "modelIdPlaceholder": "Model ID (required, e.g., gpt-4o)",
         "modelLabelPlaceholder": "Display name (optional)",
         "modelDescPlaceholder": "Model description (optional)",
+        "cliLoginProviderName": "Codex CLI लॉगिन",
+        "cliLoginProviderDescription": "Codex CLI से ChatGPT सब्सक्रिप्शन क्रेडेंशियल्स का उपयोग करें",
+        "cliLoginAuthorizeTitle": "Codex CLI लॉगिन सक्षम करें",
+        "cliLoginAuthorizeMessage": "यह config.toml को साफ़ करेगा और Codex CLI से ChatGPT सब्सक्रिप्शन क्रेडेंशियल्स का उपयोग करेगा।",
+        "cliLoginAuthorizeDetail": "सुनिश्चित करें कि आपने टर्मिनल में 'codex login' से लॉगिन किया हो। आपके वर्तमान config.toml को बैकअप किया जाएगा।",
+        "cliLoginDisableTitle": "Codex CLI लॉगिन अक्षम करें",
+        "cliLoginDisableMessage": "यह पुराने config.toml को पुनर्स्थापित करेगा और API की प्रमाणीकरण पर स्विच करेगा।",
         "modelIdRequired": "Model ID is required",
         "modelIdInvalid": "Invalid model ID format (only letters, numbers, dots, hyphens, underscores, slashes and colons allowed)",
         "modelIdDuplicate": "Model ID already exists"
@@ -1202,7 +1211,7 @@
       "label": "Claude Code"
     },
     "codex": {
-      "label": "Codex Cli"
+      "label": "Codex"
     },
     "gemini": {
       "label": "Gemini Cli"

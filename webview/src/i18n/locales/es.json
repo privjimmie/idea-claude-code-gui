@@ -88,7 +88,8 @@
     "unknownFile": "Unknown file",
     "attachmentsUploaded": "[Archivos adjuntos cargados]",
     "streamingConnected": "Claude conectado, entendiendo tu pregunta",
-    "showEarlierMessages": "Mostrar {{count}} mensajes anteriores"
+    "showEarlierMessages": "Mostrar {{count}} mensajes anteriores",
+    "totalDuration": "Esta respuesta tardó"
   },
   "settings": {
     "title": "Configuración",
@@ -119,7 +120,8 @@
         "french": "Français",
         "japanese": "日本語",
         "russian": "Русский",
-        "korean": "한국어"
+        "korean": "한국어",
+        "portuguese": "Português (Brasil)"
       },
       "nodePath": {
         "label": "Ruta de Node.js",
@@ -509,6 +511,13 @@
         "modelIdPlaceholder": "Model ID (required, e.g., gpt-4o)",
         "modelLabelPlaceholder": "Display name (optional)",
         "modelDescPlaceholder": "Model description (optional)",
+        "cliLoginProviderName": "Inicio de sesion Codex CLI",
+        "cliLoginProviderDescription": "Usar credenciales de suscripcion de ChatGPT desde Codex CLI",
+        "cliLoginAuthorizeTitle": "Habilitar inicio de sesion Codex CLI",
+        "cliLoginAuthorizeMessage": "Esto limpiara su config.toml y usara las credenciales de suscripcion de ChatGPT de Codex CLI.",
+        "cliLoginAuthorizeDetail": "Asegurese de haber iniciado sesion mediante 'codex login' en su terminal. Su config.toml actual sera respaldada.",
+        "cliLoginDisableTitle": "Deshabilitar inicio de sesion Codex CLI",
+        "cliLoginDisableMessage": "Esto restaurara su config.toml anterior y cambiara a autenticacion por clave API.",
         "modelIdRequired": "Model ID is required",
         "modelIdInvalid": "Invalid model ID format (only letters, numbers, dots, hyphens, underscores, slashes and colons allowed)",
         "modelIdDuplicate": "Model ID already exists"
@@ -1203,7 +1212,7 @@
       "label": "Claude Code"
     },
     "codex": {
-      "label": "Codex Cli"
+      "label": "Codex"
     },
     "gemini": {
       "label": "Gemini Cli"

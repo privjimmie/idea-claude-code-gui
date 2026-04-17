@@ -108,4 +108,41 @@ describe('mergeConsecutiveAssistantMessages', () => {
     expect(result[0].__turnId).toBe(1);
     expect(result[2].__turnId).toBe(2);
   });
+
+  it('does not merge assistant messages from different turns', () => {
+    const messages: ClaudeMessage[] = [
+      makeMsg('assistant', 'first turn answer', {
+        __turnId: 10,
+        raw: { content: [{ type: 'text', text: 'first turn answer' }] } as any,
+      }),
+      makeMsg('assistant', 'second turn answer', {
+        __turnId: 11,
+        raw: { content: [{ type: 'text', text: 'second turn answer' }] } as any,
+      }),
+    ];
+
+    const result = mergeConsecutiveAssistantMessages(messages, normalizeBlocks);
+    expect(result).toHaveLength(2);
+    expect(result.map((message) => message.__turnId)).toEqual([10, 11]);
+  });
+
+  it('merges tool-only assistant messages across user tool_result boundaries', () => {
+    const messages: ClaudeMessage[] = [
+      makeMsg('assistant', '', {
+        raw: { content: [{ type: 'tool_use', id: 'tool-1', name: 'shell_command', input: { command: 'git status' } }] } as any,
+      }),
+      makeMsg('user', '[tool_result]', {
+        raw: { content: [{ type: 'tool_result', tool_use_id: 'tool-1', content: 'ok' }] } as any,
+      }),
+      makeMsg('assistant', '', {
+        raw: { content: [{ type: 'tool_use', id: 'tool-2', name: 'shell_command', input: { command: 'git diff --cached' } }] } as any,
+      }),
+    ];
+
+    const result = mergeConsecutiveAssistantMessages(messages, normalizeBlocks);
+
+    expect(result).toHaveLength(1);
+    const mergedRaw = result[0].raw as { content?: Array<{ type?: string; id?: string }> };
+    expect(mergedRaw.content?.filter((block) => block.type === 'tool_use').map((block) => block.id)).toEqual(['tool-1', 'tool-2']);
+  });
 });

@@ -92,6 +92,8 @@ const SettingsView = ({
     setChatBgColor,
     userMsgColor,
     setUserMsgColor,
+    diffTheme,
+    setDiffTheme,
   } = useSettingsThemeSync();
 
   // Basic settings actions: node path, working dir, streaming, shortcuts, sound, commit prompt, etc.
@@ -147,6 +149,12 @@ const SettingsView = ({
     handleTestSound,
     handleBrowseSound,
     handleSaveCommitPrompt,
+    commitGenerationEnabled,
+    setCommitGenerationEnabled,
+    handleCommitGenerationEnabledChange,
+    statusBarWidgetEnabled,
+    setStatusBarWidgetEnabled,
+    handleStatusBarWidgetEnabledChange,
   } = useSettingsBasicActions({
     streamingEnabledProp,
     onStreamingEnabledChangeProp,
@@ -194,6 +202,7 @@ const SettingsView = ({
     handleCloseCodexProviderDialog,
     handleSaveCodexProvider,
     handleSwitchCodexProvider,
+    handleRevokeCodexLocalConfigAuthorization,
     handleDeleteCodexProvider,
     confirmDeleteCodexProvider,
     cancelDeleteCodexProvider,
@@ -276,6 +285,8 @@ const SettingsView = ({
     setSoundOnlyWhenUnfocused,
     setSelectedSound,
     setCustomSoundPath,
+    setCommitGenerationEnabled,
+    setStatusBarWidgetEnabled,
   });
 
   // Save provider (wrapper function with validation logic)
@@ -408,8 +419,20 @@ const SettingsView = ({
               onChatBgColorChange={setChatBgColor}
               userMsgColor={userMsgColor}
               onUserMsgColorChange={setUserMsgColor}
+              diffTheme={diffTheme}
+              onDiffThemeChange={setDiffTheme}
               diffExpandedByDefault={diffExpandedByDefault}
               onDiffExpandedByDefaultChange={setDiffExpandedByDefault}
+              commitGenerationEnabled={commitGenerationEnabled}
+              onCommitGenerationEnabledChange={(enabled) => {
+                handleCommitGenerationEnabledChange(enabled);
+                addToast(t('toast.restartRequired'), 'warning');
+              }}
+              statusBarWidgetEnabled={statusBarWidgetEnabled}
+              onStatusBarWidgetEnabledChange={(enabled) => {
+                handleStatusBarWidgetEnabledChange(enabled);
+                addToast(t('toast.restartRequired'), 'warning');
+              }}
               soundNotificationEnabled={soundNotificationEnabled}
               onSoundNotificationEnabledChange={handleSoundNotificationEnabledChange}
               soundOnlyWhenUnfocused={soundOnlyWhenUnfocused}
@@ -437,11 +460,12 @@ const SettingsView = ({
               codexProviders={codexProviders}
               codexLoading={codexLoading}
               onAddCodexProvider={handleAddCodexProvider}
-              onEditCodexProvider={handleEditCodexProvider}
-              onDeleteCodexProvider={handleDeleteCodexProvider}
-              onSwitchCodexProvider={handleSwitchCodexProvider}
-              addToast={addToast}
-            />
+                onEditCodexProvider={handleEditCodexProvider}
+                onDeleteCodexProvider={handleDeleteCodexProvider}
+                onSwitchCodexProvider={handleSwitchCodexProvider}
+                onRevokeCodexLocalConfigAuthorization={handleRevokeCodexLocalConfigAuthorization}
+                addToast={addToast}
+              />
           </div>
 
           {/* SDK dependency management */}
